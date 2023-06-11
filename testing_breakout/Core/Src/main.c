@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include "MPU_6050.h"
 
 /* USER CODE END Includes */
 
@@ -44,8 +45,22 @@
 #define MASTER_R 			((MPU_6050_ADDRESS << 1) | 1U)
 #define MASTER_W 			((MPU_6050_ADDRESS << 1) | 0U)
 
+/* Self-Test for MPU-6050 sensors */
+#define SELF_TEST_X 		(0x0DU)
+#define SELF_TEST_Y			(0x0EU)
+#define SELF_TEST_Z 		(0x0FU)
+#define SELF_TEST_A 		(0x10U)
+
 
 #define WHO_AM_I 			(0x75U)
+#define GYRO_CONFIG 		(0x1BU)
+#define ACCEL_CONFIG_ADD 	(0x1CU)
+#define AFS_SEL_2 			(0x00U)
+#define AFS_SEL_4 			(0x01U)
+#define AFS_SEL_8 			(0x10U)
+#define AFS_SEL_16 			(0x18U)
+
+
 
 /* USER CODE END PM */
 
@@ -56,6 +71,9 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+
+/* instantiating mpu_6050_t struct */
+mpu_6050_t my_imu;
 
 /* USER CODE END PV */
 
@@ -80,15 +98,6 @@ static void MX_USART3_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t i2c_flag = HAL_OK;
-
-	uint8_t uart_buff[20];
-	uint8_t uart_len = 0;
-
-	uint8_t i2cread_buff[10];
-	uint8_t i2c_trans;
-
-	uint8_t checkADD = 0;
 
   /* USER CODE END 1 */
 
@@ -114,7 +123,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  i2c_trans = WHO_AM_I;
+  initMPU_6050(&my_imu, &hi2c1, &huart3);
 
   /* USER CODE END 2 */
 
@@ -122,27 +131,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  i2c_flag = HAL_I2C_Master_Transmit(&hi2c1, MASTER_W, &i2c_trans, 1, 1000);
-
-	  if (i2c_flag != HAL_OK)
-	  {
-		  uart_len = sprintf((char *)uart_buff, "I2C read failed\r\n");
-		  HAL_UART_Transmit(&huart3, uart_buff, uart_len, 100);
-	  }
+	  /* Testing I2C_Rx() */
+	  if (I2C_Rx(&my_imu, WHO_AM_I, 1) == HAL_OK)
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
 	  else
-	  {
-		  HAL_I2C_Master_Receive(&hi2c1, MASTER_R, &checkADD, 1, 100);
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
 
-		  /* If PB8 reads a logic high */
-//		  if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8))
-//		  {
+
+	  HAL_Delay(100);
+//  	  /* Masked off the 5 least significant bits */
+//  	  checkADD &= ~(0x1FU);
 //
-//		  }
-
-
-		  uart_len = sprintf((char *)uart_buff, "I2C read W\r\n");
-		  HAL_UART_Transmit(&huart3, uart_buff, uart_len, 100);
-	  }
+////  	  temp = (checkADD >> 3 | )
+//
+//  	  HAL_Delay(100);
 
 
     /* USER CODE END WHILE */
