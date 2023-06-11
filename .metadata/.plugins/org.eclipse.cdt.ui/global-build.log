@@ -1,0 +1,71 @@
+20:48:57 **** Incremental Build of configuration Debug for project testing_breakout ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_it.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/stm32f7xx_it.d" -MT"Core/Src/stm32f7xx_it.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_it.o"
+arm-none-eabi-gcc "../Core/Src/system_stm32f7xx.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/system_stm32f7xx.d" -MT"Core/Src/system_stm32f7xx.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/system_stm32f7xx.o"
+arm-none-eabi-gcc -o "testing_breakout.elf" @"objects.list"   -mcpu=cortex-m7 -T"/home/chris/STM_projects/gps_6axis/testing_breakout/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="testing_breakout.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: testing_breakout.elf
+ 
+arm-none-eabi-size   testing_breakout.elf 
+arm-none-eabi-objdump -h -S  testing_breakout.elf  > "testing_breakout.list"
+   text	   data	    bss	    dec	    hex	filename
+  17408	    120	   1808	  19336	   4b88	testing_breakout.elf
+Finished building: default.size.stdout
+ 
+Finished building: testing_breakout.list
+ 
+20:49:05 **** Incremental Build of configuration Debug for project testing_breakout ****
+make -j4 all 
+arm-none-eabi-size   testing_breakout.elf 
+   text	   data	    bss	    dec	    hex	filename
+  17408	    120	   1808	  19336	   4b88	testing_breakout.elf
+Finished building: default.size.stdout
+ 
+20:52:28 **** Incremental Build of configuration Debug for project testing_breakout ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:134:46: warning: passing argument 3 of 'HAL_I2C_Master_Receive' makes pointer from integer without a cast [-Wint-conversion]
+  134 |     HAL_I2C_Master_Receive(&hi2c1, MASTER_R, checkADD, 1, 100);
+      |                                              ^~~~~~~~
+      |                                              |
+      |                                              uint8_t {aka unsigned char}
+In file included from ../Core/Inc/stm32f7xx_hal_conf.h:350,
+                 from ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_i2c.h:627:97: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'uint8_t' {aka 'unsigned char'}
+  627 | HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData,
+      |                                                                                        ~~~~~~~~~^~~~~
+../Core/Src/main.c:88:10: warning: unused variable 'i2cread_buff' [-Wunused-variable]
+   88 |  uint8_t i2cread_buff[10];
+      |          ^~~~~~~~~~~~
+arm-none-eabi-gcc -o "testing_breakout.elf" @"objects.list"   -mcpu=cortex-m7 -T"/home/chris/STM_projects/gps_6axis/testing_breakout/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="testing_breakout.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: testing_breakout.elf
+ 
+arm-none-eabi-size   testing_breakout.elf 
+arm-none-eabi-objdump -h -S  testing_breakout.elf  > "testing_breakout.list"
+   text	   data	    bss	    dec	    hex	filename
+  17416	    120	   1808	  19344	   4b90	testing_breakout.elf
+Finished building: default.size.stdout
+ 
+Finished building: testing_breakout.list
+ 
+20:52:41 **** Incremental Build of configuration Debug for project testing_breakout ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:88:10: warning: unused variable 'i2cread_buff' [-Wunused-variable]
+   88 |  uint8_t i2cread_buff[10];
+      |          ^~~~~~~~~~~~
+arm-none-eabi-gcc -o "testing_breakout.elf" @"objects.list"   -mcpu=cortex-m7 -T"/home/chris/STM_projects/gps_6axis/testing_breakout/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="testing_breakout.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: testing_breakout.elf
+ 
+arm-none-eabi-size   testing_breakout.elf 
+arm-none-eabi-objdump -h -S  testing_breakout.elf  > "testing_breakout.list"
+   text	   data	    bss	    dec	    hex	filename
+  17412	    120	   1808	  19340	   4b8c	testing_breakout.elf
+Finished building: default.size.stdout
+ 
+Finished building: testing_breakout.list
+ 
