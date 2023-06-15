@@ -25,14 +25,38 @@
 #define SELF_TEST_Z 		(0x0FU)
 #define SELF_TEST_A 		(0x10U)
 
+/* Registers for the accelerometer */
+#define ACCEL_CONFIG		(0x1CU)
+
+/* Registers for the gyro */
+#define GYRO_CONFIG			(0x1BU)
+
+
+/* FIFO related registers */
+#define FIFO_EN 			(0x23U)
+#define FIFO_COUNT_H 		(0x72U)
+#define FIFO_COUNT_L 		(0x73U)
+#define FIFO_R_W 			(0x74U)
+#define ENABLE_ALL			(0xFFU)
+#define FIFO_ACCEL_EN		(1U << 4)
+
+
 
 #define WHO_AM_I 			(0x75U)
 #define GYRO_CONFIG 		(0x1BU)
 #define ACCEL_CONFIG_ADD 	(0x1CU)
 #define AFS_SEL_2 			(0x00U)
-#define AFS_SEL_4 			(0x01U)
-#define AFS_SEL_8 			(0x10U)
-#define AFS_SEL_16 			(0x18U)
+#define AFS_SEL_4 			(1U << 3)
+#define AFS_SEL_8 			(2U << 3)
+#define AFS_SEL_16 			(3U << 3)
+
+typedef enum
+{
+	TEST_X,
+	TEST_Y,
+	TEST_Z
+
+}self_test;
 
 
 
@@ -45,7 +69,7 @@ typedef struct
 	UART_HandleTypeDef *uart_handle;
 
 	/* pointer to a buffer that is responsible for transmitting data on the i2c bus */
-	uint8_t* i2c_trans_buff;
+	uint8_t* i2c_tx_buff;
 
 	/* Indicates the number of bytes that are supposed to be transferred on the i2c bus */
 	uint8_t i2c_tx_size;
@@ -59,11 +83,22 @@ typedef struct
 
 }mpu_6050_t;
 
-void initMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c, UART_HandleTypeDef *uart);
+/* Tested */
+void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c, UART_HandleTypeDef *uart);
 
+/* Tested */
 uint8_t I2C_Tx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes);
 
+/* Tested */
 uint8_t I2C_Rx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes);
+
+
+/* Untested */
+uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
+
+
+/* Untested */
+void  Mpu_Config(mpu_6050_t *my_mpu_6050);
 
 
 

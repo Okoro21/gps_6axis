@@ -1,3 +1,5 @@
-../Core/Src/MPU_6050.c:10:6:initMPU_6050	88	static
-../Core/Src/MPU_6050.c:27:9:I2C_Tx	48	static
-../Core/Src/MPU_6050.c:46:9:I2C_Rx	48	static
+../Core/Src/MPU_6050.c:10:6:InitMPU_6050	88	static
+../Core/Src/MPU_6050.c:30:7:Mpu_Config	16	static
+../Core/Src/MPU_6050.c:43:9:I2C_Tx	56	static
+../Core/Src/MPU_6050.c:61:9:I2C_Rx	48	static
+../Core/Src/MPU_6050.c:88:9:selfTest	24	static

@@ -39,29 +39,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
-/* unshifted address */
-#define MPU_6050_ADDRESS 	(0x68U)
-
-#define MASTER_R 			((MPU_6050_ADDRESS << 1) | 1U)
-#define MASTER_W 			((MPU_6050_ADDRESS << 1) | 0U)
-
-/* Self-Test for MPU-6050 sensors */
-#define SELF_TEST_X 		(0x0DU)
-#define SELF_TEST_Y			(0x0EU)
-#define SELF_TEST_Z 		(0x0FU)
-#define SELF_TEST_A 		(0x10U)
-
-
-#define WHO_AM_I 			(0x75U)
-#define GYRO_CONFIG 		(0x1BU)
-#define ACCEL_CONFIG_ADD 	(0x1CU)
-#define AFS_SEL_2 			(0x00U)
-#define AFS_SEL_4 			(0x01U)
-#define AFS_SEL_8 			(0x10U)
-#define AFS_SEL_16 			(0x18U)
-
-
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -123,7 +100,14 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  initMPU_6050(&my_imu, &hi2c1, &huart3);
+  InitMPU_6050(&my_imu, &hi2c1, &huart3);
+
+  my_imu.i2c_tx_buff[0] = FIFO_EN;
+
+  I2C_Tx(&my_imu, my_imu.i2c_tx_buff, 1);
+
+  my_imu.i2c_tx_buff[0] = FIFO_ACCEL_EN;
+  I2C_Tx(&my_imu, my_imu.i2c_tx_buff, 1);
 
   /* USER CODE END 2 */
 
@@ -131,21 +115,35 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  //my_imu.i2c_tx_buff[0] = WHO_AM_I;
+
+//	  if (selfTest(&my_imu, TEST_X) == HAL_OK)
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+//	  else
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+//
+//
+//	  Mpu_Config(&my_imu);
+//
+//	  HAL_Delay(100);
+//
+//	  if (selfTest(&my_imu, TEST_X) == HAL_OK)
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+//	  else
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+
 	  /* Testing I2C_Rx() */
-	  if (I2C_Rx(&my_imu, WHO_AM_I, 1) == HAL_OK)
+//	  if (I2C_Rx(&my_imu, FIFO_COUNT_H, 2) == HAL_OK)
+//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+//	  else
+//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+
+	  if (I2C_Rx(&my_imu, FIFO_R_W, 3) == HAL_OK)
 		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
 	  else
 		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
 
-
-	  HAL_Delay(100);
-//  	  /* Masked off the 5 least significant bits */
-//  	  checkADD &= ~(0x1FU);
-//
-////  	  temp = (checkADD >> 3 | )
-//
-//  	  HAL_Delay(100);
-
+	// memset(my_imu.i2c_rece_buff, '0', 30);
 
     /* USER CODE END WHILE */
 
