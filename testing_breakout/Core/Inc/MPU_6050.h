@@ -38,8 +38,10 @@
 #define FIFO_COUNT_L 		(0x73U)
 #define FIFO_R_W 			(0x74U)
 #define ENABLE_ALL			(0xFFU)
-#define FIFO_ACCEL_EN		(1U << 4)
+#define FIFO_ACCEL_EN		(1U << 3)
 
+/* Power Management */
+#define PWR_MGMT_1 			(0x6BU)
 
 
 #define WHO_AM_I 			(0x75U)
@@ -65,9 +67,6 @@ typedef struct
 	/* i2c handle that contains all of the configuration for the i2c bus */
 	I2C_HandleTypeDef *i2c_handle;
 
-	/* UART handle that contains all of the configuration for UART line */
-	UART_HandleTypeDef *uart_handle;
-
 	/* pointer to a buffer that is responsible for transmitting data on the i2c bus */
 	uint8_t* i2c_tx_buff;
 
@@ -84,7 +83,7 @@ typedef struct
 }mpu_6050_t;
 
 /* Tested */
-void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c, UART_HandleTypeDef *uart);
+void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);
 
 /* Tested */
 uint8_t I2C_Tx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes);
@@ -98,9 +97,18 @@ uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
 
 /* Untested */
-void  Mpu_Config(mpu_6050_t *my_mpu_6050);
+uint8_t  Mpu_Config(mpu_6050_t *my_mpu_6050);
 
 uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050);
+
+uint8_t Fifo_Enable(mpu_6050_t *my_mpu_6050);
+
+uint8_t getAccel(mpu_6050_t *my_mpu_6050);
+
+void clearBuff(mpu_6050_t *my_mpu_6050);
+
+uint8_t wake(mpu_6050_t *my_mpu_6050);
+
 
 
 

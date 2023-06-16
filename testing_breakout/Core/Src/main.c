@@ -100,7 +100,15 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  InitMPU_6050(&my_imu, &hi2c1, &huart3);
+  InitMPU_6050(&my_imu, &hi2c1);
+
+  wake(&my_imu);
+
+  Mpu_Config(&my_imu);
+
+  Fifo_Enable(&my_imu);
+
+
 
   /* USER CODE END 2 */
 
@@ -109,7 +117,7 @@ int main(void)
   while (1)
   {
 //
-	  if (Who_Am_I(&my_imu) == HAL_OK)
+	  if (getAccel(&my_imu) == HAL_OK)
 		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
       else
     	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);

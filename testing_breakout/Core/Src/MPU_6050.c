@@ -14,24 +14,19 @@ uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050)
 	uint8_t i2c_Rx_flag = HAL_ERROR;
 	uint8_t i2c_success = HAL_ERROR;
 
-	uint8_t tempRx;
-	uint8_t tempTx = WHO_AM_I;
+	clearBuff(my_mpu_6050);
 
 	my_mpu_6050->i2c_tx_buff[0] = WHO_AM_I;
-	/* increment i2c_tx size */
-	my_mpu_6050->i2c_tx_size++;
+
+//	/* increment i2c_tx size */
+//	my_mpu_6050->i2c_tx_size++;
 
 	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 1, 100);
 
 	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, my_mpu_6050->i2c_rx_buff, 1, 100);
 
-	if (i2c_Rx_flag == HAL_OK)
-		my_mpu_6050->i2c_rx_size++;
-
-
-//	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, &tempTx, 1, 100);
-//
-//	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, &tempRx, 1, 100);
+//	if (i2c_Rx_flag == HAL_OK)
+//		my_mpu_6050->i2c_rx_size++;
 
 	if (i2c_Tx_flag == HAL_OK && i2c_Rx_flag == HAL_OK)
 		i2c_success = HAL_OK;
@@ -41,38 +36,95 @@ uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050)
 	return i2c_success;
 }
 
-void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c, UART_HandleTypeDef *uart)
+void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c)
 {
 	/* create a parameter that determines the size of each array */
-	uint8_t i2cTxBuffer[5] = {0};
+	uint8_t i2cTxBuffer[6] = {0};
 	uint8_t i2cRxBuffer[6] = {0};
 
 	my_mpu_6050->i2c_handle = i2c;
-	my_mpu_6050->uart_handle = uart;
 
 	my_mpu_6050->i2c_tx_buff = i2cTxBuffer;
 	my_mpu_6050->i2c_rx_buff = i2cRxBuffer;
 
-	my_mpu_6050->i2c_tx_size = 0;
-	my_mpu_6050->i2c_rx_size = 0;
+	my_mpu_6050->i2c_tx_size = 6;
+	my_mpu_6050->i2c_rx_size = 6;
 
 }
 
 /* Create another parameter that will allow user to
  * configure the full scale range of the accelerometer
  */
-void  Mpu_Config(mpu_6050_t *my_mpu_6050)
+uint8_t Mpu_Config(mpu_6050_t *my_mpu_6050)
 {
+	uint8_t configSuccess = HAL_ERROR;
 	my_mpu_6050->i2c_tx_buff[0] = ACCEL_CONFIG;
 
 	/* changing the value written to ACCEL_CONFIG */
 	my_mpu_6050->i2c_tx_buff[1] = AFS_SEL_8;
 
-	if (HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100) == HAL_OK)
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-	 else
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+
+	return configSuccess;
 }
+
+uint8_t Fifo_Enable(mpu_6050_t *my_mpu_6050)
+{
+	uint8_t enableSuccess = HAL_ERROR;
+
+	//clearBuff(my_mpu_6050);
+
+	my_mpu_6050->i2c_tx_buff[0] = FIFO_EN;
+
+	my_mpu_6050->i2c_tx_buff[1] = FIFO_ACCEL_EN;
+
+	enableSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+
+	return enableSuccess;
+}
+
+uint8_t getAccel(mpu_6050_t *my_mpu_6050)
+{
+	uint8_t i2c_Tx_flag = HAL_ERROR;
+	uint8_t i2c_Rx_flag = HAL_ERROR;
+	uint8_t i2c_success = HAL_ERROR;
+
+	//clearBuff(my_mpu_6050);
+
+	my_mpu_6050->i2c_tx_buff[0] = FIFO_R_W;
+
+	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 1, 100);
+
+	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, my_mpu_6050->i2c_rx_buff, 6, 100);
+
+	if (i2c_Tx_flag == HAL_OK && i2c_Rx_flag == HAL_OK)
+		i2c_success = HAL_OK;
+
+	/* You are also supposed to check A0 Pin on MPU_6050 */
+
+	return i2c_success;
+}
+
+uint8_t wake(mpu_6050_t *my_mpu_6050)
+{
+	uint8_t wakeSuccess = HAL_ERROR;
+
+	my_mpu_6050->i2c_tx_buff[0] = PWR_MGMT_1;
+
+	my_mpu_6050->i2c_tx_buff[1] = 0x00U;
+
+	wakeSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+
+	return wakeSuccess;
+}
+
+
+void clearBuff(mpu_6050_t *my_mpu_6050)
+{
+	memset(my_mpu_6050->i2c_tx_buff, '0', my_mpu_6050->i2c_tx_size);
+	memset(my_mpu_6050->i2c_rx_buff, '0', my_mpu_6050->i2c_rx_size);
+}
+
 
 //uint8_t I2C_Tx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes)
 //{
