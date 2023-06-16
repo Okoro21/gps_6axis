@@ -102,20 +102,20 @@ int main(void)
 
   InitMPU_6050(&my_imu, &hi2c1, &huart3);
 
-  my_imu.i2c_tx_buff[0] = FIFO_EN;
-
-  I2C_Tx(&my_imu, my_imu.i2c_tx_buff, 1);
-
-  my_imu.i2c_tx_buff[0] = FIFO_ACCEL_EN;
-  I2C_Tx(&my_imu, my_imu.i2c_tx_buff, 1);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //my_imu.i2c_tx_buff[0] = WHO_AM_I;
+//
+	  if (Who_Am_I(&my_imu) == HAL_OK)
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+      else
+    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+
+		HAL_Delay(100);
+//	  //my_imu.i2c_tx_buff[0] = WHO_AM_I;
 
 //	  if (selfTest(&my_imu, TEST_X) == HAL_OK)
 //		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
@@ -138,10 +138,10 @@ int main(void)
 //	  else
 //		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
 
-	  if (I2C_Rx(&my_imu, FIFO_R_W, 3) == HAL_OK)
-		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-	  else
-		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+//	  if (I2C_Rx(&my_imu, FIFO_R_W, 3) == HAL_OK)
+//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+//	  else
+//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
 
 	// memset(my_imu.i2c_rece_buff, '0', 30);
 

@@ -75,7 +75,7 @@ typedef struct
 	uint8_t i2c_tx_size;
 
 	/* pointer to a buffer that is responsible for receiving data on the i2c bus */
-	uint8_t* i2c_rece_buff;
+	uint8_t* i2c_rx_buff;
 
 	/* Indicates the number of bytes that are supposed to be transferred on the i2c bus */
 	uint8_t i2c_rx_size;
@@ -99,6 +99,8 @@ uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
 /* Untested */
 void  Mpu_Config(mpu_6050_t *my_mpu_6050);
+
+uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050);
 
 
 
