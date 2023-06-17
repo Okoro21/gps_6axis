@@ -117,7 +117,13 @@ int main(void)
   int16_t accelY;
   int16_t accelZ;
 
-	uint8_t uart_buff[50];
+  float  aX;
+  float  aY;
+  float  aZ;
+
+
+
+	uint8_t uart_buff[1024];
 	uint8_t uart_len = 0;
 
 
@@ -134,11 +140,26 @@ int main(void)
       else
     	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
 
-	accelX = (((int8_t)my_imu.i2c_rx_buff[0] << 8) | (int8_t)my_imu.i2c_rx_buff[1]);
-	accelY = (((int8_t)my_imu.i2c_rx_buff[2] << 8) | (int8_t)my_imu.i2c_rx_buff[3]);
-	accelZ = (((int8_t)my_imu.i2c_rx_buff[4] << 8) | (int8_t)my_imu.i2c_rx_buff[5]);
+//	accelX = (((int8_t)my_imu.i2c_rx_buff[0] << 8) | (int8_t)my_imu.i2c_rx_buff[1]);
+//	accelY = (((int8_t)my_imu.i2c_rx_buff[2] << 8) | (int8_t)my_imu.i2c_rx_buff[3]);
+//	accelZ = (((int8_t)my_imu.i2c_rx_buff[4] << 8) | (int8_t)my_imu.i2c_rx_buff[5]);
 
-	uart_len = sprintf((char *)uart_buff, "AccelX: %hd , AccelY: %hd, AccelZ: %hd\r\n", accelX, accelY, accelZ);
+	accelX = (int16_t)((my_imu.i2c_rx_buff[0] << 8) | my_imu.i2c_rx_buff[1]);
+	aX =  ((float)accelX)/4096;
+
+	aX-= 0.09;
+
+	accelY = (int16_t)((my_imu.i2c_rx_buff[2] << 8) | my_imu.i2c_rx_buff[3]);
+	aY =  ((float)accelY)/4096;
+
+	aY += 1.04;
+
+	accelZ = (int16_t)((my_imu.i2c_rx_buff[4] << 8) | my_imu.i2c_rx_buff[5]);
+	aZ =  ((float)accelZ)/4096;
+
+	aZ += 0.1;
+
+	uart_len = sprintf((char *)uart_buff, "AccelX: %.2f , AccelY: %.2f, AccelZ: %.2f\r\n", aX, aY, aZ);
 	HAL_UART_Transmit(&huart3, uart_buff, uart_len, 100);
 	HAL_Delay(500);
 //	  //my_imu.i2c_tx_buff[0] = WHO_AM_I;

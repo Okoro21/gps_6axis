@@ -58,6 +58,7 @@ void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c)
 uint8_t Mpu_Config(mpu_6050_t *my_mpu_6050)
 {
 	uint8_t configSuccess = HAL_ERROR;
+	uint8_t dlpfSet = HAL_ERROR;
 	my_mpu_6050->i2c_tx_buff[0] = ACCEL_CONFIG;
 
 	/* changing the value written to ACCEL_CONFIG */
@@ -66,7 +67,15 @@ uint8_t Mpu_Config(mpu_6050_t *my_mpu_6050)
 
 	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
-	return configSuccess;
+//	my_mpu_6050->i2c_tx_buff[0] = CONFIG;
+//	my_mpu_6050->i2c_tx_buff[1] = (0x05U);
+//
+//
+//	dlpfSet = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+
+
+
+return configSuccess;
 }
 
 uint8_t Fifo_Enable(mpu_6050_t *my_mpu_6050)

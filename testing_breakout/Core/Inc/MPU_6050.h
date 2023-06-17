@@ -26,6 +26,7 @@
 #define SELF_TEST_A 		(0x10U)
 
 /* config registers */
+#define CONFIG				(0x1AU)
 #define SMPRT_DIV 			(0x19U)
 #define USER_CTRL			(0x6AU)
 
@@ -111,8 +112,6 @@ uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050);
 uint8_t Fifo_Enable(mpu_6050_t *my_mpu_6050);
 
 uint8_t getAccel(mpu_6050_t *my_mpu_6050);
-
-
 
 void clearBuff(mpu_6050_t *my_mpu_6050);
 
