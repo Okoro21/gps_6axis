@@ -1,7 +1,8 @@
 ../Core/Src/MPU_6050.c:11:9:Who_Am_I	32	static
 ../Core/Src/MPU_6050.c:39:6:InitMPU_6050	32	static
 ../Core/Src/MPU_6050.c:58:9:Mpu_Config	32	static
-../Core/Src/MPU_6050.c:71:9:Fifo_Enable	32	static
-../Core/Src/MPU_6050.c:86:9:getAccel	32	static
-../Core/Src/MPU_6050.c:108:9:wake	32	static
-../Core/Src/MPU_6050.c:122:6:clearBuff	16	static
+../Core/Src/MPU_6050.c:72:9:Fifo_Enable	32	static
+../Core/Src/MPU_6050.c:87:9:getAccel	32	static
+../Core/Src/MPU_6050.c:110:9:setSampleRt	32	static
+../Core/Src/MPU_6050.c:124:9:wake	32	static
+../Core/Src/MPU_6050.c:138:6:clearBuff	16	static

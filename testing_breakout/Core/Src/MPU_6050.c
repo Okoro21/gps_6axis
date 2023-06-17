@@ -61,6 +61,7 @@ uint8_t Mpu_Config(mpu_6050_t *my_mpu_6050)
 	my_mpu_6050->i2c_tx_buff[0] = ACCEL_CONFIG;
 
 	/* changing the value written to ACCEL_CONFIG */
+	//my_mpu_6050->i2c_tx_buff[1] = (0xE0U | AFS_SEL_8);
 	my_mpu_6050->i2c_tx_buff[1] = AFS_SEL_8;
 
 	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
@@ -91,11 +92,12 @@ uint8_t getAccel(mpu_6050_t *my_mpu_6050)
 
 	//clearBuff(my_mpu_6050);
 
-	my_mpu_6050->i2c_tx_buff[0] = FIFO_R_W;
+//	my_mpu_6050->i2c_tx_buff[0] = FIFO_R_W;
 
-	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 1, 100);
+	my_mpu_6050->i2c_tx_buff[0] = ACCEL_X_OUT_H;
+	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 1, 1000);
 
-	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, my_mpu_6050->i2c_rx_buff, 6, 100);
+	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, my_mpu_6050->i2c_rx_buff, 6, 1000);
 
 	if (i2c_Tx_flag == HAL_OK && i2c_Rx_flag == HAL_OK)
 		i2c_success = HAL_OK;
@@ -103,6 +105,20 @@ uint8_t getAccel(mpu_6050_t *my_mpu_6050)
 	/* You are also supposed to check A0 Pin on MPU_6050 */
 
 	return i2c_success;
+}
+
+uint8_t setSampleRt(mpu_6050_t *my_mpu_6050)
+{
+	uint8_t sampleSuccess = HAL_ERROR;
+
+	my_mpu_6050->i2c_tx_buff[0] = SMPRT_DIV;
+
+	/* Divider == 8 therefore sampleRate = 8kHz/8 == 1kHz */
+	my_mpu_6050->i2c_tx_buff[0] = 0x08U;
+
+	sampleSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+
+	return sampleSuccess;
 }
 
 uint8_t wake(mpu_6050_t *my_mpu_6050)

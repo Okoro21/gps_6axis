@@ -25,9 +25,18 @@
 #define SELF_TEST_Z 		(0x0FU)
 #define SELF_TEST_A 		(0x10U)
 
+/* config registers */
+#define SMPRT_DIV 			(0x19U)
+#define USER_CTRL			(0x6AU)
+
 /* Registers for the accelerometer */
 #define ACCEL_CONFIG		(0x1CU)
-
+#define ACCEL_X_OUT_H 		(0x3BU)
+#define ACCEL_X_OUT_L		(0x3CU)
+#define ACCEL_Y_OUT_H 		(0x3DU)
+#define ACCEL_Y_OUT_L 		(0x3EU)
+#define ACCEL_Z_OUT_H 		(0x3FU)
+#define ACCEL_Z_OUT_L 		(0x40U)
 /* Registers for the gyro */
 #define GYRO_CONFIG			(0x1BU)
 
@@ -95,8 +104,6 @@ uint8_t I2C_Rx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes);
 /* Untested */
 uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
-
-/* Untested */
 uint8_t  Mpu_Config(mpu_6050_t *my_mpu_6050);
 
 uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050);
@@ -105,9 +112,13 @@ uint8_t Fifo_Enable(mpu_6050_t *my_mpu_6050);
 
 uint8_t getAccel(mpu_6050_t *my_mpu_6050);
 
+
+
 void clearBuff(mpu_6050_t *my_mpu_6050);
 
 uint8_t wake(mpu_6050_t *my_mpu_6050);
+
+uint8_t setSampleRt(mpu_6050_t *my_mpu_6050);
 
 
 
