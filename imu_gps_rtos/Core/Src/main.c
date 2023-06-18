@@ -64,7 +64,7 @@ const osThreadAttr_t blink02_attributes = {
 osThreadId_t getMPU_6050_valHandle;
 const osThreadAttr_t getMPU_6050_val_attributes = {
   .name = "getMPU_6050_val",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal1,
 };
 /* USER CODE BEGIN PV */
@@ -127,7 +127,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   //init_MPU_6050(&my_mpu, &hi2c1);
-  init_MPU_6050(&my_mpu, &hi2c1);
+  init_MPU_6050(&my_imu, &hi2c1);
 
   wake(&my_imu);
 
@@ -135,7 +135,7 @@ int main(void)
 
   accel_Gyro_Config(&my_imu);
 
-  fifo_Enable(&my_imu);
+//  fifo_Enable(&my_imu);
 
   /* USER CODE END 2 */
 
@@ -474,13 +474,21 @@ void getVals(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  who_Am_I(&my_imu);
+	get_Accel(&my_imu);
+
+	formatAccel(&my_imu);
+
+	print_Accel(&my_imu, &huart3);
+
+
+
+//	  who_Am_I(&my_imu);
 
 //	uart_len = sprintf((char *)uart_buff, "gyroX: %hd , gyroY: %hd, gyroZ: %hd\r\n", my_mpu_6050->gyroX, my_mpu_6050->gyroY, my_mpu_6050->gyroZ);
 //	uart_len = sprintf((char *)uart_buff, "%c\r\n", my_imu.i2c_rx_buff[0]);
 //	HAL_UART_Transmit(&huart3, uart_buff, uart_len, 100);
 
-	osDelay(2);
+	osDelay(400);
   }
   /* USER CODE END getVals */
 }

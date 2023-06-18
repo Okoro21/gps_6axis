@@ -120,13 +120,13 @@ void formatAccel(mpu_6050_t *my_mpu_6050)
 	my_mpu_6050->aX =  ((float)(my_mpu_6050->accelX))/4096;
 
 	/* Calibration value for acceleration in the x direction */
-	my_mpu_6050->aX-= 0.089;
+	//my_mpu_6050->aX-= 0.089;
 
 	my_mpu_6050->accelY = (int16_t)((my_mpu_6050->i2c_rx_buff[2] << 8) | my_mpu_6050->i2c_rx_buff[3]);
 	my_mpu_6050->aY =  ((float)my_mpu_6050->accelY)/4096;
 
 	/* Calibration value for acceleration in the y direction */
-	my_mpu_6050->aY += 1.05;
+	//my_mpu_6050->aY += 1.05;
 
 	my_mpu_6050->accelZ = (int16_t)((my_mpu_6050->i2c_rx_buff[4] << 8) | my_mpu_6050->i2c_rx_buff[5]);
 	my_mpu_6050->aZ =  ((float)my_mpu_6050->accelZ)/4096;
@@ -137,12 +137,12 @@ void formatAccel(mpu_6050_t *my_mpu_6050)
 
 void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 {
-	uint8_t uart_buff[1024];
+	uint8_t uart_buff[100];
 	uint8_t uart_len = 0;
 
 	uart_len = sprintf((char *)uart_buff, "AccelX: %.2f , AccelY: %.2f, AccelZ: %.2f\r\n", my_mpu_6050->aX, my_mpu_6050->aY, my_mpu_6050->aZ);
 	HAL_UART_Transmit(uartHandle, uart_buff, uart_len, 100);
-	HAL_Delay(500);
+	//HAL_Delay(500);
 }
 
 uint8_t get_Gyro(mpu_6050_t *my_mpu_6050)
