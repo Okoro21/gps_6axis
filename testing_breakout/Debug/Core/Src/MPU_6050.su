@@ -1,0 +1,12 @@
+../Core/Src/MPU_6050.c:10:9:who_Am_I	32	static
+../Core/Src/MPU_6050.c:31:6:init_MPU_6050	32	static
+../Core/Src/MPU_6050.c:46:9:accel_Gyro_Config	32	static
+../Core/Src/MPU_6050.c:79:9:fifo_Enable	32	static
+../Core/Src/MPU_6050.c:92:9:get_Accel	32	static
+../Core/Src/MPU_6050.c:117:6:formatAccel	16	static
+../Core/Src/MPU_6050.c:138:6:print_Accel	1064	static
+../Core/Src/MPU_6050.c:148:9:get_Gyro	32	static
+../Core/Src/MPU_6050.c:166:6:formatGyro	16	static
+../Core/Src/MPU_6050.c:178:6:print_Gyro	1064	static
+../Core/Src/MPU_6050.c:190:9:set_Sample_Rt	32	static
+../Core/Src/MPU_6050.c:208:9:wake	32	static
