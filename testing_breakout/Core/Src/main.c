@@ -21,8 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include <string.h>
+
 #include "MPU_6050.h"
 
 /* USER CODE END Includes */
@@ -100,33 +99,15 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  InitMPU_6050(&my_imu, &hi2c1);
+  init_MPU_6050(&my_imu, &hi2c1);
 
   wake(&my_imu);
 
-  setSampleRt(&my_imu);
+  set_Sample_Rt(&my_imu);
 
-  Mpu_Config(&my_imu);
+  mpu_Config(&my_imu);
 
-  uint8_t dummyVal = (1U << 6);
-  HAL_I2C_Master_Transmit(&hi2c1, MASTER_W, &dummyVal, 1, 100);
-
-  Fifo_Enable(&my_imu);
-
-  int16_t accelX;
-  int16_t accelY;
-  int16_t accelZ;
-
-  float  aX;
-  float  aY;
-  float  aZ;
-
-
-
-	uint8_t uart_buff[1024];
-	uint8_t uart_len = 0;
-
-
+  fifo_Enable(&my_imu);
 
   /* USER CODE END 2 */
 
@@ -134,63 +115,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//
-	  if (getAccel(&my_imu) == HAL_OK)
+	  if (get_Accel(&my_imu) == HAL_OK)
 		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
       else
+      {
     	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+      }
 
-//	accelX = (((int8_t)my_imu.i2c_rx_buff[0] << 8) | (int8_t)my_imu.i2c_rx_buff[1]);
-//	accelY = (((int8_t)my_imu.i2c_rx_buff[2] << 8) | (int8_t)my_imu.i2c_rx_buff[3]);
-//	accelZ = (((int8_t)my_imu.i2c_rx_buff[4] << 8) | (int8_t)my_imu.i2c_rx_buff[5]);
 
-	accelX = (int16_t)((my_imu.i2c_rx_buff[0] << 8) | my_imu.i2c_rx_buff[1]);
-	aX =  ((float)accelX)/4096;
+	  print_Accel(&my_imu, &huart3);
 
-	aX-= 0.09;
 
-	accelY = (int16_t)((my_imu.i2c_rx_buff[2] << 8) | my_imu.i2c_rx_buff[3]);
-	aY =  ((float)accelY)/4096;
 
-	aY += 1.04;
-
-	accelZ = (int16_t)((my_imu.i2c_rx_buff[4] << 8) | my_imu.i2c_rx_buff[5]);
-	aZ =  ((float)accelZ)/4096;
-
-	aZ += 0.1;
-
-	uart_len = sprintf((char *)uart_buff, "AccelX: %.2f , AccelY: %.2f, AccelZ: %.2f\r\n", aX, aY, aZ);
-	HAL_UART_Transmit(&huart3, uart_buff, uart_len, 100);
-	HAL_Delay(500);
-//	  //my_imu.i2c_tx_buff[0] = WHO_AM_I;
-
-//	  if (selfTest(&my_imu, TEST_X) == HAL_OK)
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-//	  else
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-//
-//
-//	  Mpu_Config(&my_imu);
-//
-//	  HAL_Delay(100);
-//
-//	  if (selfTest(&my_imu, TEST_X) == HAL_OK)
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-//	  else
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-
-	  /* Testing I2C_Rx() */
-//	  if (I2C_Rx(&my_imu, FIFO_COUNT_H, 2) == HAL_OK)
-//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-//	  else
-//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-
-//	  if (I2C_Rx(&my_imu, FIFO_R_W, 3) == HAL_OK)
-//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-//	  else
-//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-
-	// memset(my_imu.i2c_rece_buff, '0', 30);
 
     /* USER CODE END WHILE */
 

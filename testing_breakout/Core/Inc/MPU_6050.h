@@ -62,16 +62,6 @@
 #define AFS_SEL_8 			(2U << 3)
 #define AFS_SEL_16 			(3U << 3)
 
-typedef enum
-{
-	TEST_X,
-	TEST_Y,
-	TEST_Z
-
-}self_test;
-
-
-
 typedef struct
 {
 	/* i2c handle that contains all of the configuration for the i2c bus */
@@ -80,47 +70,39 @@ typedef struct
 	/* pointer to a buffer that is responsible for transmitting data on the i2c bus */
 	uint8_t* i2c_tx_buff;
 
-	/* Indicates the number of bytes that are supposed to be transferred on the i2c bus */
-	uint8_t i2c_tx_size;
-
 	/* pointer to a buffer that is responsible for receiving data on the i2c bus */
 	uint8_t* i2c_rx_buff;
 
-	/* Indicates the number of bytes that are supposed to be transferred on the i2c bus */
-	uint8_t i2c_rx_size;
+	int16_t accelX;
+	int16_t accelY;
+	int16_t accelZ;
 
+	float  aX;
+	float  aY;
+	float  aZ;
 
 }mpu_6050_t;
 
 /* Tested */
-void InitMPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);
-
-/* Tested */
-uint8_t I2C_Tx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes);
-
-/* Tested */
-uint8_t I2C_Rx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes);
-
+void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);
 
 /* Untested */
 uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
-uint8_t  Mpu_Config(mpu_6050_t *my_mpu_6050);
+uint8_t  mpu_Config(mpu_6050_t *my_mpu_6050);
 
-uint8_t Who_Am_I(mpu_6050_t *my_mpu_6050);
+/* This method identifies the slave address for the MPU_6050 */
+uint8_t who_Am_I(mpu_6050_t *my_mpu_6050);
 
-uint8_t Fifo_Enable(mpu_6050_t *my_mpu_6050);
+uint8_t fifo_Enable(mpu_6050_t *my_mpu_6050);
 
-uint8_t getAccel(mpu_6050_t *my_mpu_6050);
+uint8_t get_Accel(mpu_6050_t *my_mpu_6050);
 
-void clearBuff(mpu_6050_t *my_mpu_6050);
+void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
 uint8_t wake(mpu_6050_t *my_mpu_6050);
 
-uint8_t setSampleRt(mpu_6050_t *my_mpu_6050);
-
-
-
+uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050);
 
 
 #endif /* MPU_6050_H_ */
