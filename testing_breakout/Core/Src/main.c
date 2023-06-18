@@ -115,15 +115,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (get_Accel(&my_imu) == HAL_OK)
-		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-      else
-      {
-    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-      }
+//	  if (get_Accel(&my_imu) == HAL_OK)
+//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+//      else
+//      {
+//    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+//      }
 
 
-	  formatAccel(&my_imu);
+//	  formatAccel(&my_imu);
 
 	  //print_Accel(&my_imu, &huart3);
 
@@ -137,10 +137,6 @@ int main(void)
 	  formatGyro(&my_imu);
 
 	  print_Gyro(&my_imu, &huart3);
-
-	  HAL_Delay(500);
-
-
 
 
     /* USER CODE END WHILE */

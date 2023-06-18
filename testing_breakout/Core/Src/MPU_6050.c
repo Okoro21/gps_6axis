@@ -7,7 +7,6 @@
 
 #include "MPU_6050.h"
 
-
 uint8_t who_Am_I(mpu_6050_t *my_mpu_6050)
 {
 	/* flags that check if communication between i2c master and slave was successful */
@@ -194,8 +193,12 @@ uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050)
 
 	my_mpu_6050->i2c_tx_buff[0] = SMPRT_DIV;
 
-	/* Divider == 8 therefore sampleRate of accelerometer and gryo = 8kHz/8 == 1kHz */
+	/* Divider == 8 therefore sampleRate of accelerometer and gryo = 8MHz/8 == 1MHz */
 	my_mpu_6050->i2c_tx_buff[1] = 0x08U;
+
+//	/* Divider == 200 therefore sampleRate of accelerometer and gryo = 8kHz/200 == 40kHz */
+//	my_mpu_6050->i2c_tx_buff[1] = 0xC8U;
+
 
 	sampleSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
@@ -208,7 +211,10 @@ uint8_t wake(mpu_6050_t *my_mpu_6050)
 
 	my_mpu_6050->i2c_tx_buff[0] = PWR_MGMT_1;
 
-	my_mpu_6050->i2c_tx_buff[1] = 0x00U;
+//	/* Selecting 8MHz internal oscillator as clock source for MPU-6050 */
+//	my_mpu_6050->i2c_tx_buff[1] = 0x00U;
+
+	my_mpu_6050->i2c_tx_buff[1] = 0x01U;
 
 	wakeSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
