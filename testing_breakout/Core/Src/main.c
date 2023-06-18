@@ -105,7 +105,7 @@ int main(void)
 
   set_Sample_Rt(&my_imu);
 
-  mpu_Config(&my_imu);
+  accel_Gyro_Config(&my_imu);
 
   fifo_Enable(&my_imu);
 
@@ -123,7 +123,22 @@ int main(void)
       }
 
 
-	  print_Accel(&my_imu, &huart3);
+	  formatAccel(&my_imu);
+
+	  //print_Accel(&my_imu, &huart3);
+
+	  if (get_Gyro(&my_imu) == HAL_OK)
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+      else
+      {
+    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+      }
+
+	  formatGyro(&my_imu);
+
+	  print_Gyro(&my_imu, &huart3);
+
+	  HAL_Delay(500);
 
 
 

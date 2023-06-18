@@ -32,14 +32,31 @@
 
 /* Registers for the accelerometer */
 #define ACCEL_CONFIG		(0x1CU)
-#define ACCEL_X_OUT_H 		(0x3BU)
-#define ACCEL_X_OUT_L		(0x3CU)
-#define ACCEL_Y_OUT_H 		(0x3DU)
-#define ACCEL_Y_OUT_L 		(0x3EU)
-#define ACCEL_Z_OUT_H 		(0x3FU)
-#define ACCEL_Z_OUT_L 		(0x40U)
+#define ACCEL_XOUT_H 		(0x3BU)
+#define ACCEL_XOUT_L		(0x3CU)
+#define ACCEL_YOUT_H 		(0x3DU)
+#define ACCEL_YOUT_L 		(0x3EU)
+#define ACCEL_ZOUT_H 		(0x3FU)
+#define ACCEL_ZOUT_L 		(0x40U)
+#define AFS_SEL_2 			(0x00U)
+#define AFS_SEL_4 			(1U << 3)
+#define AFS_SEL_8 			(2U << 3)
+#define AFS_SEL_16 			(3U << 3)
+
+
+
 /* Registers for the gyro */
 #define GYRO_CONFIG			(0x1BU)
+#define GYRO_XOUT_H			(0x43U)
+#define GYRO_XOUT_L			(0x44U)
+#define GYRO_YOUT_H			(0x45U)
+#define GYRO_YOUT_L			(0x46U)
+#define GYRO_ZOUT_H			(0x47U)
+#define GYRO_ZOUT_L			(0x48U)
+#define FS_SEL_250			(0x00U)
+#define FS_SEL_500			(1U << 3)
+#define FS_SEL_1000			(2U << 3)
+#define FS_SEL_2000			(3U << 3)
 
 
 /* FIFO related registers */
@@ -55,12 +72,6 @@
 
 
 #define WHO_AM_I 			(0x75U)
-#define GYRO_CONFIG 		(0x1BU)
-#define ACCEL_CONFIG_ADD 	(0x1CU)
-#define AFS_SEL_2 			(0x00U)
-#define AFS_SEL_4 			(1U << 3)
-#define AFS_SEL_8 			(2U << 3)
-#define AFS_SEL_16 			(3U << 3)
 
 typedef struct
 {
@@ -81,6 +92,14 @@ typedef struct
 	float  aY;
 	float  aZ;
 
+	int16_t gyroX;
+	int16_t gyroY;
+	int16_t gyroZ;
+
+	float  gX;
+	float  gY;
+	float  gZ;
+
 }mpu_6050_t;
 
 /* Tested */
@@ -89,7 +108,7 @@ void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);
 /* Untested */
 uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
-uint8_t  mpu_Config(mpu_6050_t *my_mpu_6050);
+uint8_t  accel_Gyro_Config(mpu_6050_t *my_mpu_6050);
 
 /* This method identifies the slave address for the MPU_6050 */
 uint8_t who_Am_I(mpu_6050_t *my_mpu_6050);
@@ -98,7 +117,13 @@ uint8_t fifo_Enable(mpu_6050_t *my_mpu_6050);
 
 uint8_t get_Accel(mpu_6050_t *my_mpu_6050);
 
+void formatAccel(mpu_6050_t *my_mpu_6050);
+
 void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+
+uint8_t get_Gyro(mpu_6050_t *my_mpu_6050);
+
+void formatGyro(mpu_6050_t *my_mpu_6050);
 
 uint8_t wake(mpu_6050_t *my_mpu_6050);
 

@@ -44,25 +44,35 @@ void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c)
 /* Create another parameter that will allow user to
  * configure the full scale range of the accelerometer
  */
-uint8_t mpu_Config(mpu_6050_t *my_mpu_6050)
+uint8_t accel_Gyro_Config(mpu_6050_t *my_mpu_6050)
 {
 	uint8_t configSuccess = HAL_ERROR;
 	uint8_t dlpfSet = HAL_ERROR;
 
-	/* Assigning ACCEL_CONFIG register to most significant byte of my_mpu_6050->i2c_tx_buff */
+	/* Selecting the 8g full range scale for the accelerometer
+	 * by writing AFS_SEL_8 to ACCEL_CONFIG register
+	 */
 	my_mpu_6050->i2c_tx_buff[0] = ACCEL_CONFIG;
 
-	/* Selecting the 8g full range scale of the accelerometer */
 	my_mpu_6050->i2c_tx_buff[1] = AFS_SEL_8;
 
-	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+	/* Selecting the 250 degree/seconds full range scale for the gyro
+	 * by writing FS_SEL_250 to GYRO_CONFIG register
+	 */
 
-/* Attempting to enable the digital low pass filter */
+	my_mpu_6050->i2c_tx_buff[2] = GYRO_CONFIG;
 
-//	my_mpu_6050->i2c_tx_buff[0] = CONFIG;
-//	my_mpu_6050->i2c_tx_buff[1] = (0x05U);
+	my_mpu_6050->i2c_tx_buff[3] = FS_SEL_250;
 
-//	dlpfSet = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
+
+	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 4, 100);
+
+/* Enabling the digital low pass filter */
+
+	my_mpu_6050->i2c_tx_buff[0] = CONFIG;
+	my_mpu_6050->i2c_tx_buff[1] = (0x05U);
+
+	dlpfSet = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
 return configSuccess;
 }
@@ -87,7 +97,7 @@ uint8_t get_Accel(mpu_6050_t *my_mpu_6050)
 	uint8_t i2c_Rx_flag = HAL_ERROR;
 	uint8_t i2c_success = HAL_ERROR;
 
-	my_mpu_6050->i2c_tx_buff[0] = ACCEL_X_OUT_H;
+	my_mpu_6050->i2c_tx_buff[0] = ACCEL_XOUT_H;
 
 	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 1, 1000);
 
@@ -105,30 +115,76 @@ uint8_t get_Accel(mpu_6050_t *my_mpu_6050)
 	return i2c_success;
 }
 
-void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+void formatAccel(mpu_6050_t *my_mpu_6050)
 {
-	uint8_t uart_buff[1024];
-	uint8_t uart_len = 0;
-
 	my_mpu_6050->accelX = (int16_t)((my_mpu_6050->i2c_rx_buff[0] << 8) | my_mpu_6050->i2c_rx_buff[1]);
 	my_mpu_6050->aX =  ((float)(my_mpu_6050->accelX))/4096;
 
+	/* Calibration value for acceleration in the x direction */
 	my_mpu_6050->aX-= 0.089;
 
 	my_mpu_6050->accelY = (int16_t)((my_mpu_6050->i2c_rx_buff[2] << 8) | my_mpu_6050->i2c_rx_buff[3]);
 	my_mpu_6050->aY =  ((float)my_mpu_6050->accelY)/4096;
 
+	/* Calibration value for acceleration in the y direction */
 	my_mpu_6050->aY += 1.05;
 
 	my_mpu_6050->accelZ = (int16_t)((my_mpu_6050->i2c_rx_buff[4] << 8) | my_mpu_6050->i2c_rx_buff[5]);
 	my_mpu_6050->aZ =  ((float)my_mpu_6050->accelZ)/4096;
 
+	/* Calibration value for acceleration in the z direction */
 	my_mpu_6050->aZ += 0.1;
+}
+
+void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+{
+	uint8_t uart_buff[1024];
+	uint8_t uart_len = 0;
 
 	uart_len = sprintf((char *)uart_buff, "AccelX: %.2f , AccelY: %.2f, AccelZ: %.2f\r\n", my_mpu_6050->aX, my_mpu_6050->aY, my_mpu_6050->aZ);
 	HAL_UART_Transmit(uartHandle, uart_buff, uart_len, 100);
 	HAL_Delay(500);
+}
 
+uint8_t get_Gyro(mpu_6050_t *my_mpu_6050)
+{
+	uint8_t i2c_Tx_flag = HAL_ERROR;
+	uint8_t i2c_Rx_flag = HAL_ERROR;
+	uint8_t i2c_success = HAL_ERROR;
+
+	my_mpu_6050->i2c_tx_buff[0] = GYRO_XOUT_H;
+
+	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 1, 1000);
+
+	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, my_mpu_6050->i2c_rx_buff, 6, 1000);
+
+	if (i2c_Tx_flag == HAL_OK && i2c_Rx_flag == HAL_OK)
+		i2c_success = HAL_OK;
+
+	return i2c_success;
+}
+
+void formatGyro(mpu_6050_t *my_mpu_6050)
+{
+	my_mpu_6050->gyroX = (int16_t)((my_mpu_6050->i2c_rx_buff[0] << 8) | my_mpu_6050->i2c_rx_buff[1]);
+	my_mpu_6050->gX = (my_mpu_6050->gyroX)/131.0;
+
+	my_mpu_6050->gyroY = (int16_t)((my_mpu_6050->i2c_rx_buff[2] << 8) | my_mpu_6050->i2c_rx_buff[3]);
+	my_mpu_6050->gY = (my_mpu_6050->gyroY)/131.0;
+
+	my_mpu_6050->gyroZ = (int16_t)((my_mpu_6050->i2c_rx_buff[4] << 8) | my_mpu_6050->i2c_rx_buff[5]);
+	my_mpu_6050->gZ = (my_mpu_6050->gyroZ)/131.0;
+}
+
+void print_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+{
+	uint8_t uart_buff[1024];
+	uint8_t uart_len = 0;
+
+	//uart_len = sprintf((char *)uart_buff, "gyroX: %hd , gyroY: %hd, gyroZ: %hd\r\n", my_mpu_6050->gyroX, my_mpu_6050->gyroY, my_mpu_6050->gyroZ);
+	uart_len = sprintf((char *)uart_buff, "gX: %.2f , gY: %.2f, gZ: %.2f\r\n", my_mpu_6050->gX, my_mpu_6050->gY, my_mpu_6050->gZ);
+	HAL_UART_Transmit(uartHandle, uart_buff, uart_len, 100);
+	HAL_Delay(500);
 }
 
 
@@ -139,7 +195,7 @@ uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050)
 	my_mpu_6050->i2c_tx_buff[0] = SMPRT_DIV;
 
 	/* Divider == 8 therefore sampleRate of accelerometer and gryo = 8kHz/8 == 1kHz */
-	my_mpu_6050->i2c_tx_buff[0] = 0x08U;
+	my_mpu_6050->i2c_tx_buff[1] = 0x08U;
 
 	sampleSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
@@ -159,52 +215,6 @@ uint8_t wake(mpu_6050_t *my_mpu_6050)
 	return wakeSuccess;
 }
 
-//uint8_t I2C_Tx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes)
-//{
-//	uint8_t uart_buff[20];
-//	uint8_t uart_len = 0;
-//
-//	uint8_t i2c_Tx_flag = HAL_ERROR;
-//
-//	my_mpu_6050->i2c_tx_buff[0] = mpu_reg;
-//
-//	i2c_Tx_flag = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, mpu_reg, num_bytes, 100);
-//
-//	if (i2c_Tx_flag != HAL_OK)
-//	{
-//	  uart_len = sprintf((char *)uart_buff, "I2C Tx failed\r\n");
-//	  HAL_UART_Transmit(my_mpu_6050->uart_handle, uart_buff, uart_len, 100);
-//	}
-//
-//	return i2c_Tx_flag;
-//}
-//
-//uint8_t I2C_Rx(mpu_6050_t *my_mpu_6050, uint8_t mpu_reg, uint8_t num_bytes)
-//{
-//	uint8_t uart_buff[20];
-//	uint8_t uart_len = 0;
-//
-//	uint8_t i2c_Rx_flag = HAL_ERROR;
-//	uint8_t i2c_dummy;
-//	/* check the return value
-//	 * Change to I2C_Tx
-//	 */
-//	I2C_Tx(my_mpu_6050, mpu_reg, num_bytes);
-//
-//	i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, my_mpu_6050->i2c_rece_buff, num_bytes, 100);
-//
-//	//i2c_Rx_flag = HAL_I2C_Master_Receive(my_mpu_6050->i2c_handle, MASTER_R, &i2c_dummy, num_bytes, 100);
-//
-//
-//
-//	if (i2c_Rx_flag != HAL_OK)
-//	{
-//	  uart_len = sprintf((char *)uart_buff, "I2C Rx failed\r\n");
-//	  HAL_UART_Transmit(my_mpu_6050->uart_handle, uart_buff, uart_len, 100);
-//	}
-//
-//	return i2c_Rx_flag;
-//}
 //
 //uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type)
 //{
