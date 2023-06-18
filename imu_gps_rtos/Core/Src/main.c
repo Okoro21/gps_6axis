@@ -474,7 +474,7 @@ void getVals(void *argument)
   /* Infinite loop */
   for(;;)
   {
-//	who_Am_I(&my_imu);
+	  who_Am_I(&my_imu);
 
 //	uart_len = sprintf((char *)uart_buff, "gyroX: %hd , gyroY: %hd, gyroZ: %hd\r\n", my_mpu_6050->gyroX, my_mpu_6050->gyroY, my_mpu_6050->gyroZ);
 //	uart_len = sprintf((char *)uart_buff, "%c\r\n", my_imu.i2c_rx_buff[0]);
