@@ -4,9 +4,10 @@
 ../Core/Src/MPU_6050.c:80:9:fifo_Enable	32	static
 ../Core/Src/MPU_6050.c:93:9:get_Accel	32	static
 ../Core/Src/MPU_6050.c:118:6:formatAccel	16	static
-../Core/Src/MPU_6050.c:139:6:print_Accel	1064	static
-../Core/Src/MPU_6050.c:149:9:get_Gyro	32	static
-../Core/Src/MPU_6050.c:167:6:formatGyro	16	static
-../Core/Src/MPU_6050.c:179:6:print_Gyro	1064	static
-../Core/Src/MPU_6050.c:191:9:set_Sample_Rt	32	static
-../Core/Src/MPU_6050.c:205:9:wake	32	static
+../Core/Src/MPU_6050.c:139:9:tx_Accel_Data	32	static
+../Core/Src/MPU_6050.c:165:6:print_Accel	1064	static
+../Core/Src/MPU_6050.c:175:9:get_Gyro	32	static
+../Core/Src/MPU_6050.c:193:6:formatGyro	16	static
+../Core/Src/MPU_6050.c:205:6:print_Gyro	1064	static
+../Core/Src/MPU_6050.c:217:9:set_Sample_Rt	32	static
+../Core/Src/MPU_6050.c:231:9:wake	32	static

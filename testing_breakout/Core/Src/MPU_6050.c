@@ -142,13 +142,22 @@ uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 	 * data_size should == 6 since we are fetching the MSB and LSB of each acceleration axes
 	 */
 
-	uint8_t data_size = strlen(my_mpu_6050->i2c_rx_buff);
+	uint8_t data_size;
+	//uint8_t data_size = sizeof(my_mpu_6050->i2c_rx_buff);
+
+	//uint8_t data_size = strlen((char *)my_mpu_6050->i2c_rx_buff);
 	uint8_t uart_tx_success = HAL_ERROR;
 
-	for (uint8_t index = 0; index < data_size; index++)
-		my_mpu_6050->i2c_tx_buff[index] = my_mpu_6050->i2c_rx_buff[index];
+	uint8_t data_buffer[10]; //Make sure to get rid of magic numbers
 
-	uart_tx_success = HAL_UART_Transmit(uartHandle, my_mpu_6050->i2c_tx_buff, data_size, 1000);
+	data_size = sprintf((char*)data_buffer, "%s\r\n", (char *)(my_mpu_6050->i2c_rx_buff));
+
+//	for (uint8_t index = 0; index < data_size; index++)
+//		my_mpu_6050->i2c_tx_buff[index] = my_mpu_6050->i2c_rx_buff[index];
+
+	//uart_tx_success = HAL_UART_Transmit(uartHandle, my_mpu_6050->i2c_tx_buff, data_size, 1000);
+	uart_tx_success = HAL_UART_Transmit(uartHandle, data_buffer, data_size, 50);
+
 
 	return uart_tx_success;
 }
