@@ -84,23 +84,32 @@ typedef struct
 	/* pointer to a buffer that is responsible for receiving data on the i2c bus */
 	uint8_t* i2c_rx_buff;
 
+	/* Contain the 16 bit acceleration value output from the MPU_6050 */
 	int16_t accelX;
 	int16_t accelY;
 	int16_t accelZ;
 
+	/* Two decimal precision acceleration values */
 	float  aX;
 	float  aY;
 	float  aZ;
 
+	/* Contain the 16 bit gyro value output from the MPU_6050 */
 	int16_t gyroX;
 	int16_t gyroY;
 	int16_t gyroZ;
 
+	/* Two decimal precision gyro values */
 	float  gX;
 	float  gY;
 	float  gZ;
 
 }mpu_6050_t;
+
+/* Pre: Receive an mpu_6050_t struct with accelerometer data in it
+ * Post return HAL_ERROR if Tx was unsuccessful, else returns HAL_OK
+ */
+uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
 /* Tested */
 void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);

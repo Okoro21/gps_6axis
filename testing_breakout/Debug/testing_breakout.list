@@ -1364,16 +1364,16 @@ int main(void)
  8000d96:	4603      	mov	r3, r0
  8000d98:	2b00      	cmp	r3, #0
  8000d9a:	d105      	bne.n	8000da8 <main+0x50>
-		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
- 8000d9c:	2201      	movs	r2, #1
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+ 8000d9c:	2200      	movs	r2, #0
  8000d9e:	2101      	movs	r1, #1
  8000da0:	480a      	ldr	r0, [pc, #40]	; (8000dcc <main+0x74>)
  8000da2:	f000 ff1b 	bl	8001bdc <HAL_GPIO_WritePin>
  8000da6:	e004      	b.n	8000db2 <main+0x5a>
       else
       {
-    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
- 8000da8:	2200      	movs	r2, #0
+    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+ 8000da8:	2201      	movs	r2, #1
  8000daa:	2101      	movs	r1, #1
  8000dac:	4807      	ldr	r0, [pc, #28]	; (8000dcc <main+0x74>)
  8000dae:	f000 ff15 	bl	8001bdc <HAL_GPIO_WritePin>

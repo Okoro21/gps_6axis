@@ -116,10 +116,10 @@ int main(void)
   while (1)
   {
 	  if (get_Accel(&my_imu) == HAL_OK)
-		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
       else
       {
-    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
       }
 
 	  formatAccel(&my_imu);
