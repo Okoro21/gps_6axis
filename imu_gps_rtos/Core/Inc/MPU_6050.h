@@ -1,12 +1,12 @@
 /*
  * MPU_6050.h
  *
- *  Created on: Jun 18, 2023
- *      Author: chris
+ *  Created on: Jun 11, 2023
+ *      Author: Chris
  */
 
-#ifndef INC_MPU_6050_H_
-#define INC_MPU_6050_H_
+#ifndef MPU_6050_H_
+#define MPU_6050_H_
 
 #include "stm32f7xx_hal.h"
 #include <stdio.h>
@@ -70,6 +70,11 @@
 /* Power Management */
 #define PWR_MGMT_1 			(0x6BU)
 
+/* Interrupt */
+#define INT_PIN_CFG			(0x37U)
+#define INT_ENABLE 			(0x38U)
+#define INT_STATUS 			(0x3AU)
+
 
 #define WHO_AM_I 			(0x75U)
 
@@ -84,28 +89,37 @@ typedef struct
 	/* pointer to a buffer that is responsible for receiving data on the i2c bus */
 	uint8_t* i2c_rx_buff;
 
+	/* Contain the 16 bit acceleration value output from the MPU_6050 */
 	int16_t accelX;
 	int16_t accelY;
 	int16_t accelZ;
 
+	/* Two decimal precision acceleration values */
 	float  aX;
 	float  aY;
 	float  aZ;
 
+	/* Contain the 16 bit gyro value output from the MPU_6050 */
 	int16_t gyroX;
 	int16_t gyroY;
 	int16_t gyroZ;
 
+	/* Two decimal precision gyro values */
 	float  gX;
 	float  gY;
 	float  gZ;
 
 }mpu_6050_t;
 
-/* Tested */
+/* Pre: Receive an mpu_6050_t struct with accelerometer data in it
+ * Post return HAL_ERROR if Tx was unsuccessful, else returns HAL_OK
+ */
+uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+
+//uint8_t INT_Config(mpu_6050_t *my_mpu_6050);
+
 void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);
 
-/* Untested */
 uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
 uint8_t  accel_Gyro_Config(mpu_6050_t *my_mpu_6050);
@@ -119,15 +133,21 @@ uint8_t get_Accel(mpu_6050_t *my_mpu_6050);
 
 void formatAccel(mpu_6050_t *my_mpu_6050);
 
-void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+void Tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
 uint8_t get_Gyro(mpu_6050_t *my_mpu_6050);
 
 void formatGyro(mpu_6050_t *my_mpu_6050);
 
+void Tx_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+
 uint8_t wake(mpu_6050_t *my_mpu_6050);
 
 uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050);
 
+uint8_t Get_Data(mpu_6050_t *my_mpu_6050);
 
-#endif /* INC_MPU_6050_H_ */
+void Tx_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+
+
+#endif /* MPU_6050_H_ */

@@ -1,11 +1,12 @@
 /*
  * MPU_6050.c
  *
- *  Created on: Jun 18, 2023
+ *  Created on: Jun 11, 2023
  *      Author: chris
  */
 
 #include "MPU_6050.h"
+
 
 uint8_t who_Am_I(mpu_6050_t *my_mpu_6050)
 {
@@ -76,6 +77,31 @@ uint8_t accel_Gyro_Config(mpu_6050_t *my_mpu_6050)
 return configSuccess;
 }
 
+//uint8_t INT_Config(mpu_6050_t *my_mpu_6050)
+//{
+//	uint8_t simpleConfig = 0x20;
+//	uint8_t DATA_RDY_IN = 0x01;
+//
+//	uint8_t configSuccess = HAL_ERROR;
+//
+//	my_mpu_6050->i2c_tx_buff[0] = INT_PIN_CFG;
+//	my_mpu_6050->i2c_tx_buff[1] = simpleConfig;
+//	my_mpu_6050->i2c_tx_buff[2] = ACCEL_CONFIG;
+//	my_mpu_6050->i2c_tx_buff[3] = 0x01;
+//
+//	my_mpu_6050->i2c_tx_buff[4] = INT_ENABLE;
+//	my_mpu_6050->i2c_tx_buff[5] = DATA_RDY_IN;
+//
+////	my_mpu_6050->i2c_tx_buff[0] = INT_ENABLE;
+////	my_mpu_6050->i2c_tx_buff[1] = DATA_RDY_IN;
+////	my_mpu_6050->i2c_tx_buff[2] = INT_PIN_CFG;
+////	my_mpu_6050->i2c_tx_buff[3] = simpleConfig;
+//
+//	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 6, HAL_MAX_DELAY);
+//
+//	return configSuccess;
+//}
+
 uint8_t fifo_Enable(mpu_6050_t *my_mpu_6050)
 {
 	uint8_t enableSuccess = HAL_ERROR;
@@ -135,14 +161,40 @@ void formatAccel(mpu_6050_t *my_mpu_6050)
 	my_mpu_6050->aZ += 0.1;
 }
 
-void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+{
+	/* Fetches the number of data bytes within i2c_rx_buff
+	 * data_size should == 6 since we are fetching the MSB and LSB of each acceleration axes
+	 */
+
+	uint8_t data_size;
+	//uint8_t data_size = sizeof(my_mpu_6050->i2c_rx_buff);
+
+	//uint8_t data_size = strlen((char *)my_mpu_6050->i2c_rx_buff);
+	uint8_t uart_tx_success = HAL_ERROR;
+
+	uint8_t data_buffer[10]; //Make sure to get rid of magic numbers
+
+	data_size = sprintf((char*)data_buffer, "%s\r\n", (char *)(my_mpu_6050->i2c_rx_buff));
+
+//	for (uint8_t index = 0; index < data_size; index++)
+//		my_mpu_6050->i2c_tx_buff[index] = my_mpu_6050->i2c_rx_buff[index];
+
+	//uart_tx_success = HAL_UART_Transmit(uartHandle, my_mpu_6050->i2c_tx_buff, data_size, 1000);
+	uart_tx_success = HAL_UART_Transmit(uartHandle, data_buffer, data_size, 50);
+
+
+	return uart_tx_success;
+}
+
+void Tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 {
 	uint8_t uart_buff[100];
 	uint8_t uart_len = 0;
 
-	uart_len = sprintf((char *)uart_buff, "AccelX: %.2f , AccelY: %.2f, AccelZ: %.2f\r\n", my_mpu_6050->aX, my_mpu_6050->aY, my_mpu_6050->aZ);
+	uart_len = sprintf((char *)uart_buff, "aX: %.2f , aY: %.2f, aZ: %.2f\r\n", my_mpu_6050->aX, my_mpu_6050->aY, my_mpu_6050->aZ);
 	HAL_UART_Transmit(uartHandle, uart_buff, uart_len, 100);
-	//HAL_Delay(500);
+	HAL_Delay(500);
 }
 
 uint8_t get_Gyro(mpu_6050_t *my_mpu_6050)
@@ -175,7 +227,7 @@ void formatGyro(mpu_6050_t *my_mpu_6050)
 	my_mpu_6050->gZ = (my_mpu_6050->gyroZ)/131.0;
 }
 
-void print_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+void Tx_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 {
 	uint8_t uart_buff[1024];
 	uint8_t uart_len = 0;
@@ -186,6 +238,11 @@ void print_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 	HAL_Delay(500);
 }
 
+//uint8_t Get_Data(mpu_6050_t *my_mpu_6050)
+//{
+//
+//}
+
 
 uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050)
 {
@@ -193,12 +250,8 @@ uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050)
 
 	my_mpu_6050->i2c_tx_buff[0] = SMPRT_DIV;
 
-	/* Divider == 8 therefore sampleRate of accelerometer and gryo = 8MHz/8 == 1MHz */
+	/* Divider == 8 therefore sampleRate of accelerometer and gryo = 8kHz/8 == 1kHz */
 	my_mpu_6050->i2c_tx_buff[1] = 0x08U;
-
-//	/* Divider == 200 therefore sampleRate of accelerometer and gryo = 8kHz/200 == 40kHz */
-//	my_mpu_6050->i2c_tx_buff[1] = 0xC8U;
-
 
 	sampleSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
@@ -211,10 +264,7 @@ uint8_t wake(mpu_6050_t *my_mpu_6050)
 
 	my_mpu_6050->i2c_tx_buff[0] = PWR_MGMT_1;
 
-//	/* Selecting 8MHz internal oscillator as clock source for MPU-6050 */
-//	my_mpu_6050->i2c_tx_buff[1] = 0x00U;
-
-	my_mpu_6050->i2c_tx_buff[1] = 0x01U;
+	my_mpu_6050->i2c_tx_buff[1] = 0x00U;
 
 	wakeSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 2, 100);
 
@@ -260,6 +310,3 @@ uint8_t wake(mpu_6050_t *my_mpu_6050)
 //
 //	return isOk;
 //}
-
-
-

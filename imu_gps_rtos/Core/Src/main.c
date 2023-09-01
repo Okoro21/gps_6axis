@@ -46,31 +46,32 @@ I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart3;
 
-/* Definitions for blink01 */
-osThreadId_t blink01Handle;
-const osThreadAttr_t blink01_attributes = {
-  .name = "blink01",
-  .stack_size = 128 * 4,
+/* Definitions for Tx_Data */
+osThreadId_t Tx_DataHandle;
+const osThreadAttr_t Tx_Data_attributes = {
+  .name = "Tx_Data",
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for blink02 */
-osThreadId_t blink02Handle;
-const osThreadAttr_t blink02_attributes = {
-  .name = "blink02",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal1,
-};
-/* Definitions for getMPU_6050_val */
-osThreadId_t getMPU_6050_valHandle;
-const osThreadAttr_t getMPU_6050_val_attributes = {
-  .name = "getMPU_6050_val",
+/* Definitions for getData */
+osThreadId_t getDataHandle;
+const osThreadAttr_t getData_attributes = {
+  .name = "getData",
   .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal1,
+  .priority = (osPriority_t) osPriorityBelowNormal6,
 };
 /* USER CODE BEGIN PV */
 
 /* instantiating mpu_6050_t struct */
 mpu_6050_t my_imu;
+
+typedef enum
+{
+	NOT_SEND_DATA,
+	SEND_DATA,
+}sendData;
+
+uint8_t TX_DATA = NOT_SEND_DATA;
 
 //uint8_t uart_buff[10];
 //uint8_t uart_len = 0;
@@ -82,9 +83,8 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART3_UART_Init(void);
-void startBlink01(void *argument);
-void startBlink02(void *argument);
-void getVals(void *argument);
+void Tx_A_G_Data(void *argument);
+void getA_G_Data(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -159,14 +159,11 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of blink01 */
-  blink01Handle = osThreadNew(startBlink01, NULL, &blink01_attributes);
+  /* creation of Tx_Data */
+  Tx_DataHandle = osThreadNew(Tx_A_G_Data, NULL, &Tx_Data_attributes);
 
-  /* creation of blink02 */
-  blink02Handle = osThreadNew(startBlink02, NULL, &blink02_attributes);
-
-  /* creation of getMPU_6050_val */
-  getMPU_6050_valHandle = osThreadNew(getVals, NULL, &getMPU_6050_val_attributes);
+  /* creation of getData */
+  getDataHandle = osThreadNew(getA_G_Data, NULL, &getData_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -416,14 +413,14 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_startBlink01 */
+/* USER CODE BEGIN Header_Tx_A_G_Data */
 /**
-  * @brief  Function implementing the blink01 thread.
+  * @brief  Function implementing the Tx_Data thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_startBlink01 */
-void startBlink01(void *argument)
+/* USER CODE END Header_Tx_A_G_Data */
+void Tx_A_G_Data(void *argument)
 {
   /* USER CODE BEGIN 5 */
 
@@ -431,66 +428,49 @@ void startBlink01(void *argument)
   /* Infinite loop */
   for(;;)
   {
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-		osDelay(500);
+	  if(TX_DATA)
+	  {
+		  formatAccel(&my_imu);
+
+		  Tx_Accel(&my_imu, &huart3);
+
+
+	  }
+
+	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+
+	  TX_DATA = NOT_SEND_DATA;
+
+	  osDelay(100);
   }
 
   osThreadTerminate(NULL);
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_startBlink02 */
+/* USER CODE BEGIN Header_getA_G_Data */
 /**
-* @brief Function implementing the blink02 thread.
+* @brief Function implementing the getData thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_startBlink02 */
-void startBlink02(void *argument)
+/* USER CODE END Header_getA_G_Data */
+void getA_G_Data(void *argument)
 {
-  /* USER CODE BEGIN startBlink02 */
-
+  /* USER CODE BEGIN getA_G_Data */
   /* Infinite loop */
   for(;;)
   {
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-		osDelay(600);
+	  if (get_Accel(&my_imu) != HAL_OK)
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	  else
+		  TX_DATA = SEND_DATA;
+
+    osDelay(25);
   }
 
   osThreadTerminate(NULL);
-  /* USER CODE END startBlink02 */
-}
-
-/* USER CODE BEGIN Header_getVals */
-/**
-* @brief Function implementing the getMPU_6050_val thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_getVals */
-void getVals(void *argument)
-{
-  /* USER CODE BEGIN getVals */
-  /* Infinite loop */
-  for(;;)
-  {
-	get_Accel(&my_imu);
-
-	formatAccel(&my_imu);
-
-	print_Accel(&my_imu, &huart3);
-
-
-
-//	  who_Am_I(&my_imu);
-
-//	uart_len = sprintf((char *)uart_buff, "gyroX: %hd , gyroY: %hd, gyroZ: %hd\r\n", my_mpu_6050->gyroX, my_mpu_6050->gyroY, my_mpu_6050->gyroZ);
-//	uart_len = sprintf((char *)uart_buff, "%c\r\n", my_imu.i2c_rx_buff[0]);
-//	HAL_UART_Transmit(&huart3, uart_buff, uart_len, 100);
-
-	osDelay(400);
-  }
-  /* USER CODE END getVals */
+  /* USER CODE END getA_G_Data */
 }
 
 /**
