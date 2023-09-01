@@ -187,12 +187,12 @@ uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 	return uart_tx_success;
 }
 
-void tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+void Tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 {
-	uint8_t uart_buff[1024];
+	uint8_t uart_buff[100];
 	uint8_t uart_len = 0;
 
-	uart_len = sprintf((char *)uart_buff, "AccelX: %.2f , AccelY: %.2f, AccelZ: %.2f\r\n", my_mpu_6050->aX, my_mpu_6050->aY, my_mpu_6050->aZ);
+	uart_len = sprintf((char *)uart_buff, "aX: %.2f , aY: %.2f, aZ: %.2f\r\n", my_mpu_6050->aX, my_mpu_6050->aY, my_mpu_6050->aZ);
 	HAL_UART_Transmit(uartHandle, uart_buff, uart_len, 100);
 	HAL_Delay(500);
 }
@@ -227,7 +227,7 @@ void formatGyro(mpu_6050_t *my_mpu_6050)
 	my_mpu_6050->gZ = (my_mpu_6050->gyroZ)/131.0;
 }
 
-void print_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+void Tx_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 {
 	uint8_t uart_buff[1024];
 	uint8_t uart_len = 0;
@@ -236,6 +236,11 @@ void print_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 	uart_len = sprintf((char *)uart_buff, "gX: %.2f , gY: %.2f, gZ: %.2f\r\n", my_mpu_6050->gX, my_mpu_6050->gY, my_mpu_6050->gZ);
 	HAL_UART_Transmit(uartHandle, uart_buff, uart_len, 100);
 	HAL_Delay(500);
+}
+
+uint8_t Get_Data(mpu_6050_t *my_mpu_6050)
+{
+
 }
 
 

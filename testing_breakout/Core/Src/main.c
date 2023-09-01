@@ -44,6 +44,7 @@
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart4;
@@ -57,9 +58,18 @@ typedef enum
 	SEND_DATA,
 }sendData;
 
+typedef enum
+{
+	NOT_FETCH_DATA,
+	FETCH_DATA,
+} fetchData;
+
 /* instantiating mpu_6050_t struct */
 mpu_6050_t my_imu;
-uint8_t sendDataFlag = 0;
+uint8_t sendAccel = 0;
+uint8_t sendGyro = 0;
+uint8_t getAccel = 0;
+uint8_t getGyro = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,6 +79,7 @@ static void MX_I2C1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -80,10 +91,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim == &htim4)
 	{
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+
+		getAccel = NOT_FETCH_DATA;
+		getGyro = NOT_FETCH_DATA;
 	}
 
-	sendDataFlag = SEND_DATA;
+	if (htim == &htim3)
+	{
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+
+		sendAccel = SEND_DATA;
+		sendGyro = SEND_DATA;
+	}
 }
+
+
 
 /* USER CODE END 0 */
 
@@ -119,6 +141,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_UART4_Init();
   MX_TIM4_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
   init_MPU_6050(&my_imu, &hi2c1);
@@ -133,45 +156,51 @@ int main(void)
 
   //INT_Config(&my_imu);
 
+  /* Timer 4 triggers interrupt that collects data from the 6 axis sensor */
   HAL_TIM_Base_Start_IT(&htim4);
+
+  /* Timer 3 triggers an interrupt that transmits the data via uart */
+  HAL_TIM_Base_Start_IT(&htim3);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (sendDataFlag)
+	  if (getAccel == FETCH_DATA)
 	  {
 		  if (get_Accel(&my_imu) != HAL_OK)
 			  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-		  else
-		  {
-	//		  if (tx_Accel_Data(&my_imu, &huart4) == HAL_ERROR)
-	//		  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 1);
-		  formatAccel(&my_imu);
 
-		  tx_Accel(&my_imu, &huart3);
-		  }
-
-		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-		  sendDataFlag = NOT_SEND_DATA;
+		  getAccel = 0;
 	  }
 
-//	  if (get_Gyro(&my_imu) == HAL_OK)
-//		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-//      else
-//      {
-//    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
-//      }
-//
-//	  formatGyro(&my_imu);
-//
-//	  print_Gyro(&my_imu, &huart3);
-//
-//	  HAL_Delay(500);
+	  if (sendAccel == SEND_DATA)
+	  {
+		  formatAccel(&my_imu);
 
+		  Tx_Accel(&my_imu, &huart3);
 
-
+		  sendAccel = NOT_SEND_DATA;
+	  }
+//
+//	  if (getGyro == FETCH_DATA)
+//	  {
+//		  if (get_Gyro(&my_imu) != HAL_OK)
+//			  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+//
+//		  getGyro = 0;
+//	  }
+//
+//	  if (sendGyro == SEND_DATA)
+//	  {
+//		  formatGyro(&my_imu);
+//
+//		  Tx_Gyro(&my_imu, &huart3);
+//
+//		  sendGyro = NOT_SEND_DATA;
+//	  }
 
     /* USER CODE END WHILE */
 
@@ -266,6 +295,51 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 1000;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 32000;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
 
 }
 

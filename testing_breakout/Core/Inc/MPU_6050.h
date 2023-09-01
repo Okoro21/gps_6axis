@@ -133,15 +133,21 @@ uint8_t get_Accel(mpu_6050_t *my_mpu_6050);
 
 void formatAccel(mpu_6050_t *my_mpu_6050);
 
-void tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+void Tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
 uint8_t get_Gyro(mpu_6050_t *my_mpu_6050);
 
 void formatGyro(mpu_6050_t *my_mpu_6050);
 
+void Tx_Gyro(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+
 uint8_t wake(mpu_6050_t *my_mpu_6050);
 
 uint8_t set_Sample_Rt(mpu_6050_t *my_mpu_6050);
+
+uint8_t Get_Data(mpu_6050_t *my_mpu_6050);
+
+void Tx_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
 
 #endif /* MPU_6050_H_ */
