@@ -70,6 +70,11 @@
 /* Power Management */
 #define PWR_MGMT_1 			(0x6BU)
 
+/* Interrupt */
+#define INT_PIN_CFG			(0x37U)
+#define INT_ENABLE 			(0x38U)
+#define INT_STATUS 			(0x3AU)
+
 
 #define WHO_AM_I 			(0x75U)
 
@@ -111,10 +116,10 @@ typedef struct
  */
 uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
-/* Tested */
+//uint8_t INT_Config(mpu_6050_t *my_mpu_6050);
+
 void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c);
 
-/* Untested */
 uint8_t selfTest(mpu_6050_t *my_mpu, uint8_t test_type);
 
 uint8_t  accel_Gyro_Config(mpu_6050_t *my_mpu_6050);
@@ -128,7 +133,7 @@ uint8_t get_Accel(mpu_6050_t *my_mpu_6050);
 
 void formatAccel(mpu_6050_t *my_mpu_6050);
 
-void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
+void tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle);
 
 uint8_t get_Gyro(mpu_6050_t *my_mpu_6050);
 

@@ -77,6 +77,31 @@ uint8_t accel_Gyro_Config(mpu_6050_t *my_mpu_6050)
 return configSuccess;
 }
 
+//uint8_t INT_Config(mpu_6050_t *my_mpu_6050)
+//{
+//	uint8_t simpleConfig = 0x20;
+//	uint8_t DATA_RDY_IN = 0x01;
+//
+//	uint8_t configSuccess = HAL_ERROR;
+//
+//	my_mpu_6050->i2c_tx_buff[0] = INT_PIN_CFG;
+//	my_mpu_6050->i2c_tx_buff[1] = simpleConfig;
+//	my_mpu_6050->i2c_tx_buff[2] = ACCEL_CONFIG;
+//	my_mpu_6050->i2c_tx_buff[3] = 0x01;
+//
+//	my_mpu_6050->i2c_tx_buff[4] = INT_ENABLE;
+//	my_mpu_6050->i2c_tx_buff[5] = DATA_RDY_IN;
+//
+////	my_mpu_6050->i2c_tx_buff[0] = INT_ENABLE;
+////	my_mpu_6050->i2c_tx_buff[1] = DATA_RDY_IN;
+////	my_mpu_6050->i2c_tx_buff[2] = INT_PIN_CFG;
+////	my_mpu_6050->i2c_tx_buff[3] = simpleConfig;
+//
+//	configSuccess = HAL_I2C_Master_Transmit(my_mpu_6050->i2c_handle, MASTER_W, my_mpu_6050->i2c_tx_buff, 6, HAL_MAX_DELAY);
+//
+//	return configSuccess;
+//}
+
 uint8_t fifo_Enable(mpu_6050_t *my_mpu_6050)
 {
 	uint8_t enableSuccess = HAL_ERROR;
@@ -162,7 +187,7 @@ uint8_t tx_Accel_Data(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 	return uart_tx_success;
 }
 
-void print_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
+void tx_Accel(mpu_6050_t *my_mpu_6050, UART_HandleTypeDef *uartHandle)
 {
 	uint8_t uart_buff[1024];
 	uint8_t uart_len = 0;

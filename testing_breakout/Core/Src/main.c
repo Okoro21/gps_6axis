@@ -44,14 +44,22 @@
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim4;
+
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
+typedef enum
+{
+	NOT_SEND_DATA,
+	SEND_DATA,
+}sendData;
+
 /* instantiating mpu_6050_t struct */
 mpu_6050_t my_imu;
-
+uint8_t sendDataFlag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,12 +68,22 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_UART4_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim4)
+	{
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+	}
+
+	sendDataFlag = SEND_DATA;
+}
 
 /* USER CODE END 0 */
 
@@ -100,6 +118,7 @@ int main(void)
   MX_I2C1_Init();
   MX_USART3_UART_Init();
   MX_UART4_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
   init_MPU_6050(&my_imu, &hi2c1);
@@ -110,29 +129,33 @@ int main(void)
 
   accel_Gyro_Config(&my_imu);
 
-  fifo_Enable(&my_imu);
+  //fifo_Enable(&my_imu);
 
+  //INT_Config(&my_imu);
+
+  HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (get_Accel(&my_imu) == HAL_OK)
+	  if (sendDataFlag)
 	  {
-		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+		  if (get_Accel(&my_imu) != HAL_OK)
+			  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 0);
+		  else
+		  {
+	//		  if (tx_Accel_Data(&my_imu, &huart4) == HAL_ERROR)
+	//		  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 1);
+		  formatAccel(&my_imu);
 
-		  if (tx_Accel_Data(&my_imu, &huart4) == HAL_ERROR)
-		  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 1);
+		  tx_Accel(&my_imu, &huart3);
+		  }
+
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+		  sendDataFlag = NOT_SEND_DATA;
 	  }
-      else
-      {
-    	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
-      }
-
-	  formatAccel(&my_imu);
-
-	  print_Accel(&my_imu, &huart3);
 
 //	  if (get_Gyro(&my_imu) == HAL_OK)
 //		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 1);
@@ -247,6 +270,51 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 1000;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 16000 -1;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief UART4 Initialization Function
   * @param None
   * @retval None
@@ -339,6 +407,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -388,6 +459,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : USB_SOF_Pin USB_ID_Pin USB_DM_Pin USB_DP_Pin */
   GPIO_InitStruct.Pin = USB_SOF_Pin|USB_ID_Pin|USB_DM_Pin|USB_DP_Pin;
