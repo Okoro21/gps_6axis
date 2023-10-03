@@ -1,0 +1,3 @@
+[submodule "microROS_gps_imu/micro_ros_stm32cubemx_utils"]
+	path = microROS_gps_imu/micro_ros_stm32cubemx_utils
+	url = git@github.com:micro-ROS/micro_ros_stm32cubemx_utils.git
