@@ -31,9 +31,9 @@ CPP_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+Core/Src \
 Core/Src/extra_sources \
 Core/Src/extra_sources/microros_transports \
-Core/Src \
 Core/Startup \
 Drivers/STM32F7xx_HAL_Driver/Src \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \

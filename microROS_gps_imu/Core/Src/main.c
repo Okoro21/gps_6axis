@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "MPU_6050.h"
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
@@ -31,6 +32,14 @@
 #include <rmw_microros/rmw_microros.h>
 
 #include <std_msgs/msg/int32.h>
+#include <std_msgs/msg/u_int8.h>
+#include <example_interfaces/msg/string.h>
+#include <example_interfaces/msg/float32.h>
+#include <example_interfaces/msg/u_int8_multi_array.h>
+
+#include <geometry_msgs/msg/accel.h>
+
+
 
 
 /* USER CODE END Includes */
@@ -60,6 +69,13 @@ const osThreadAttr_t microROS_tx_attributes = {
   .stack_size = 3000 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for data_aq */
+osThreadId_t data_aqHandle;
+const osThreadAttr_t data_aq_attributes = {
+  .name = "data_aq",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -69,6 +85,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 void tx_data(void *argument);
+void getAG_data(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -76,6 +93,16 @@ void tx_data(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* instantiating mpu_6050_t struct */
+mpu_6050_t my_imu;
+
+typedef enum
+{
+	NOT_SEND_DATA,
+	SEND_DATA,
+}sendData;
+
+uint8_t TX_DATA = NOT_SEND_DATA;
 
 /* USER CODE END 0 */
 
@@ -134,6 +161,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of microROS_tx */
   microROS_txHandle = osThreadNew(tx_data, NULL, &microROS_tx_attributes);
+
+  /* creation of data_aq */
+  data_aqHandle = osThreadNew(getAG_data, NULL, &data_aq_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -380,6 +410,18 @@ void tx_data(void *argument)
 	  rcl_allocator_t allocator;
 	  rcl_node_t node;
 
+
+	  std_msgs__msg__UInt8 accel_data;
+	  std_msgs__msg__UInt8__Sequence aData;
+
+	  example_interfaces__msg__String sData;
+
+	  geometry_msgs__msg__Accel myData;
+
+	  example_interfaces__msg__Float32 floatData;
+
+	  example_interfaces__msg__UInt8MultiArray arrayData;
+
 	  allocator = rcl_get_default_allocator();
 
 	  //create init_options
@@ -389,26 +431,87 @@ void tx_data(void *argument)
 	  rclc_node_init_default(&node, "cubemx_node", "", &support);
 
 	  // create publisher
+//	  rclc_publisher_init_default(
+//	    &publisher,
+//	    &node,
+//	    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+//	    "cubemx_publisher");
+
+	  /* Creating a publisher that can tx uint8_t data */
 	  rclc_publisher_init_default(
 	    &publisher,
 	    &node,
-	    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+	    ROSIDL_GET_MSG_TYPE_SUPPORT(example_interfaces, msg, UInt8),
 	    "cubemx_publisher");
 
-	  msg.data = 0;
+	  uint8_t message[] = "Hello World";
+//
+//	  sData.data = message;
+
+//	  myData.linear = 20;
+//	  myData.angular = 10;
+
+//	  uint8_t array[6] = {1,2,3,4,5,6};
+//
+
+	  //msg.data = 0;
+
+
+//	  accel_data.data = 200;
+//
+//	  floatData.data = 100;
+//
+
+
+	  aData.capacity = 10;
+	  /* Allocates 10 * sizeof(std_msgs__msg__UInt8) bytes */
+	  aData.data = (std_msgs__msg__UInt8*)malloc(aData.capacity * sizeof(std_msgs__msg__UInt8));
+
+	  aData.size = 0;
+	  aData.data[0].data = 100;
+	  aData.size++;
+
+
 
 	  for(;;)
 	  {
-	    rcl_ret_t ret = rcl_publish(&publisher, &msg, NULL);
+	    //rcl_ret_t ret = rcl_publish(&publisher, &msg, NULL);
+		rcl_ret_t ret = rcl_publish(&publisher, &aData, NULL);
 	    if (ret != RCL_RET_OK)
 	    {
 	      printf("Error publishing (line %d)\n", __LINE__);
 	    }
 
-	    msg.data++;
+	    //accel_data.data++;
+	    //msg.data++;
 	    osDelay(10);
 	  }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_getAG_data */
+/**
+* @brief Function implementing the data_aq thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_getAG_data */
+void getAG_data(void *argument)
+{
+  /* USER CODE BEGIN getAG_data */
+  /* Infinite loop */
+	for(;;)
+	{
+		if (get_Accel(&my_imu) != HAL_OK)
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+		else
+		  TX_DATA = SEND_DATA;
+		/* Collect Data every 100ms */
+		osDelay(100);
+	}
+
+osThreadTerminate(NULL);
+  /* USER CODE END getAG_data */
 }
 
 /**
