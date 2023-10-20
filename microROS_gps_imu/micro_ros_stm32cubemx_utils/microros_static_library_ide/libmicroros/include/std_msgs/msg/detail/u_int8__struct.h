@@ -36,7 +36,7 @@ typedef struct std_msgs__msg__UInt8__Sequence
   size_t size;
   /// The number of allocated items in data
   size_t capacity;
-} std_msgs__msg__UInt8__Sequence;
+}std_msgs__msg__UInt8__Sequence;
 
 #ifdef __cplusplus
 }

@@ -19,10 +19,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include <stdlib.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "MPU_6050.h"
+
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
@@ -33,11 +35,9 @@
 
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/u_int8.h>
-#include <example_interfaces/msg/string.h>
 #include <example_interfaces/msg/float32.h>
 #include <example_interfaces/msg/u_int8_multi_array.h>
-
-#include <geometry_msgs/msg/accel.h>
+#include <example_interfaces/msg/u_int8.h>
 
 
 
@@ -60,6 +60,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+I2C_HandleTypeDef hi2c1;
+
 UART_HandleTypeDef huart3;
 
 /* Definitions for microROS_tx */
@@ -73,8 +75,8 @@ const osThreadAttr_t microROS_tx_attributes = {
 osThreadId_t data_aqHandle;
 const osThreadAttr_t data_aq_attributes = {
   .name = "data_aq",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal,
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
 
@@ -84,8 +86,9 @@ const osThreadAttr_t data_aq_attributes = {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_I2C1_Init(void);
 void tx_data(void *argument);
-void getAG_data(void *argument);
+void getData(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -95,6 +98,10 @@ void getAG_data(void *argument);
 /* USER CODE BEGIN 0 */
 /* instantiating mpu_6050_t struct */
 mpu_6050_t my_imu;
+
+example_interfaces__msg__UInt8__Sequence ui_array;
+
+example_interfaces__msg__UInt8MultiArray multi_ui_array;
 
 typedef enum
 {
@@ -135,7 +142,19 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+	init_MPU_6050(&my_imu, &hi2c1);
+
+	wake(&my_imu);
+
+	set_Sample_Rt(&my_imu);
+
+	accel_Gyro_Config(&my_imu);
+
+	ui_array.data = (example_interfaces__msg__UInt8*)
+					malloc(6 * sizeof(example_interfaces__msg__UInt8));
+
 
   /* USER CODE END 2 */
 
@@ -163,7 +182,7 @@ int main(void)
   microROS_txHandle = osThreadNew(tx_data, NULL, &microROS_tx_attributes);
 
   /* creation of data_aq */
-  data_aqHandle = osThreadNew(getAG_data, NULL, &data_aq_attributes);
+  data_aqHandle = osThreadNew(getData, NULL, &data_aq_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -227,6 +246,54 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x0000020B;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
@@ -410,17 +477,11 @@ void tx_data(void *argument)
 	  rcl_allocator_t allocator;
 	  rcl_node_t node;
 
-
+	  /* My data types */
+	  //std_msgs__msg__Float32 Fmsg;
 	  std_msgs__msg__UInt8 accel_data;
-	  std_msgs__msg__UInt8__Sequence aData;
 
-	  example_interfaces__msg__String sData;
 
-	  geometry_msgs__msg__Accel myData;
-
-	  example_interfaces__msg__Float32 floatData;
-
-	  example_interfaces__msg__UInt8MultiArray arrayData;
 
 	  allocator = rcl_get_default_allocator();
 
@@ -430,88 +491,101 @@ void tx_data(void *argument)
 	  // create node
 	  rclc_node_init_default(&node, "cubemx_node", "", &support);
 
-	  // create publisher
-//	  rclc_publisher_init_default(
-//	    &publisher,
-//	    &node,
-//	    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-//	    "cubemx_publisher");
-
 	  /* Creating a publisher that can tx uint8_t data */
 	  rclc_publisher_init_default(
 	    &publisher,
 	    &node,
-	    ROSIDL_GET_MSG_TYPE_SUPPORT(example_interfaces, msg, UInt8),
+	    ROSIDL_GET_MSG_TYPE_SUPPORT(example_interfaces, msg, UInt8MultiArray),
 	    "cubemx_publisher");
 
-	  uint8_t message[] = "Hello World";
-//
-//	  sData.data = message;
+//	  ui_array.capacity = 6;
+//	  ui_array.size = 0;
 
-//	  myData.linear = 20;
-//	  myData.angular = 10;
+	  multi_ui_array.data.data = my_imu.i2c_rx_buff;
+	  multi_ui_array.data.capacity = 6;
+	  multi_ui_array.data.size = 6;
 
-//	  uint8_t array[6] = {1,2,3,4,5,6};
-//
-
-	  //msg.data = 0;
+	  //multi_ui_array.layout.data_offset = 0;
 
 
-//	  accel_data.data = 200;
-//
-//	  floatData.data = 100;
-//
 
+//	  for (int i = 0; i < 6; i++)
+//	  {
+//		  ui_array.data[i].data = my_imu.i2c_rx_buff[i];
+//		  ui_array.size++;
+//	  }
 
-	  aData.capacity = 10;
-	  /* Allocates 10 * sizeof(std_msgs__msg__UInt8) bytes */
-	  aData.data = (std_msgs__msg__UInt8*)malloc(aData.capacity * sizeof(std_msgs__msg__UInt8));
+	  //accel_data.data = my_imu.i2c_rx_buff[4];
 
-	  aData.size = 0;
-	  aData.data[0].data = 100;
-	  aData.size++;
-
-
+	 //Fmsg.data = my_imu.aZ;
 
 	  for(;;)
 	  {
 	    //rcl_ret_t ret = rcl_publish(&publisher, &msg, NULL);
-		rcl_ret_t ret = rcl_publish(&publisher, &aData, NULL);
-	    if (ret != RCL_RET_OK)
-	    {
-	      printf("Error publishing (line %d)\n", __LINE__);
-	    }
+
+
+
+		rcl_ret_t ret = rcl_publish(&publisher, &multi_ui_array, NULL);
+		if (ret != RCL_RET_OK)
+		{
+		  printf("Error publishing (line %d)\n", __LINE__);
+		}
+
+//		if (get_Accel(&my_imu) != HAL_OK)
+//		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+//		else
+//		{
+//			formatAccel(&my_imu);
+//
+//		    osDelay(1000);
+//
+//			TX_DATA = SEND_DATA;
+//
+//			  Fmsg.data = my_imu.aZ;
+//
+//			rcl_ret_t ret = rcl_publish(&publisher, &Fmsg, NULL);
+//			if (ret != RCL_RET_OK)
+//			{
+//			  printf("Error publishing (line %d)\n", __LINE__);
+//			}
+
+
+//		  Fmsg.data *= 2;
+//
+//	    if ((int)Fmsg.data > 10000)
+//	  	  Fmsg.data = 1;
 
 	    //accel_data.data++;
 	    //msg.data++;
-	    osDelay(10);
+
+		  //accel_data.data++;
+		/* 1Khz transmit rate should be good enough for any moving vehicle */
+	    osDelay(100);
 	  }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_getAG_data */
+/* USER CODE BEGIN Header_getData */
 /**
 * @brief Function implementing the data_aq thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_getAG_data */
-void getAG_data(void *argument)
+/* USER CODE END Header_getData */
+void getData(void *argument)
 {
-  /* USER CODE BEGIN getAG_data */
+  /* USER CODE BEGIN getData */
   /* Infinite loop */
-	for(;;)
-	{
-		if (get_Accel(&my_imu) != HAL_OK)
+  for(;;)
+  {
+	  if (get_Accel(&my_imu) != HAL_OK)
 		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-		else
-		  TX_DATA = SEND_DATA;
-		/* Collect Data every 100ms */
-		osDelay(100);
-	}
+	  else
+		  formatAccel(&my_imu);
 
-osThreadTerminate(NULL);
-  /* USER CODE END getAG_data */
+    osDelay(1);
+  }
+  /* USER CODE END getData */
 }
 
 /**

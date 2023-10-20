@@ -211,7 +211,7 @@ example_interfaces/Int64.msg
 example_interfaces/ByteMultiArray.msg
 example_interfaces/Float64.msg
 example_interfaces/UInt16.msg
-example_interfaces/UInt8MultiArray.msg
+example_interfaces/F.msg
 example_interfaces/UInt16MultiArray.msg
 example_interfaces/UInt64MultiArray.msg
 example_interfaces/String.msg

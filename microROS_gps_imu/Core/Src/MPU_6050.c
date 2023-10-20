@@ -6,7 +6,7 @@
  */
 
 #include "MPU_6050.h"
-
+#include <stdlib.h>
 
 uint8_t who_Am_I(mpu_6050_t *my_mpu_6050)
 {
@@ -32,13 +32,18 @@ uint8_t who_Am_I(mpu_6050_t *my_mpu_6050)
 void init_MPU_6050(mpu_6050_t *my_mpu_6050, I2C_HandleTypeDef *i2c)
 {
 	/* create a parameter that determines the size of each array */
-	uint8_t i2cTxBuffer[6] = {0};
-	uint8_t i2cRxBuffer[6] = {0};
+//	uint8_t i2cTxBuffer[6] = {0};
+//	uint8_t i2cRxBuffer[6] = {0};
+
+
 
 	my_mpu_6050->i2c_handle = i2c;
 
-	my_mpu_6050->i2c_tx_buff = i2cTxBuffer;
-	my_mpu_6050->i2c_rx_buff = i2cRxBuffer;
+	/* Allocating memory Dynamically
+	 * Make Sure to Free
+	 */
+	my_mpu_6050->i2c_tx_buff = (uint8_t *)malloc(6 * sizeof(uint8_t));
+	my_mpu_6050->i2c_rx_buff = (uint8_t *)malloc(6 * sizeof(uint8_t));
 }
 
 /* Create another parameter that will allow user to

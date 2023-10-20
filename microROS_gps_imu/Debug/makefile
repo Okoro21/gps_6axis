@@ -83,7 +83,7 @@ main-build: microROS_gps_imu.elf secondary-outputs
 
 # Tool invocations
 microROS_gps_imu.elf microROS_gps_imu.map: $(OBJS) $(USER_OBJS) /home/chris/STM_projects/gps_6axis/microROS_gps_imu/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "microROS_gps_imu.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/STM_projects/gps_6axis/microROS_gps_imu/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="microROS_gps_imu.map" -Wl,--gc-sections -static -L../micro_ros_stm32cubemx_utils/microros_static_library_ide/libmicroros --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+	arm-none-eabi-g++ -o "microROS_gps_imu.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/STM_projects/gps_6axis/microROS_gps_imu/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="microROS_gps_imu.map" -Wl,--gc-sections -static -L../micro_ros_stm32cubemx_utils/microros_static_library_ide/libmicroros --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
